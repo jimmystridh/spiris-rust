@@ -1,0 +1,24 @@
+[package]
+name = "visma_eaccounting"
+version = "0.1.0"
+edition = "2021"
+authors = ["Visma eAccounting API Client Contributors"]
+description = "Rust client for the Visma eAccounting API"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/jimmystridh/claude_jungle_bamboo"
+keywords = ["visma", "eaccounting", "api", "client"]
+categories = ["api-bindings"]
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+thiserror = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+url = "2.5"
+oauth2 = "4.4"
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockito = "1.2"
