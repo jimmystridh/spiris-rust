@@ -42,16 +42,38 @@ pub fn draw(f: &mut Frame, app: &App) {
 
     // Footer
     draw_footer(f, chunks[2], app);
+
+    // Draw confirmation dialog on top if needed
+    if app.confirm_delete.is_some() {
+        draw_confirmation_dialog(f, app);
+    }
 }
 
 fn draw_header(f: &mut Frame, area: Rect, app: &App) {
-    let title = match app.client {
-        Some(_) => "Spiris Bokföring och Fakturering - TUI",
-        None => "Spiris Bokföring och Fakturering - TUI (Not Authenticated)",
+    let (title, color) = match app.client {
+        Some(_) => ("Spiris Bokföring och Fakturering - TUI ✓", Color::Green),
+        None => ("Spiris Bokföring och Fakturering - TUI (Not Authenticated)", Color::Red),
     };
 
-    let header = Paragraph::new(title)
-        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+    let mut header_lines = vec![Line::from(Span::styled(
+        title,
+        Style::default().fg(color).add_modifier(Modifier::BOLD),
+    ))];
+
+    // Show status/error messages in header
+    if let Some(msg) = &app.status_message {
+        header_lines.push(Line::from(Span::styled(
+            format!("✓ {}", msg),
+            Style::default().fg(Color::Green),
+        )));
+    } else if let Some(err) = &app.error_message {
+        header_lines.push(Line::from(Span::styled(
+            format!("✗ {}", err),
+            Style::default().fg(Color::Red),
+        )));
+    }
+
+    let header = Paragraph::new(header_lines)
         .alignment(Alignment::Center)
         .block(Block::default().borders(Borders::ALL));
 
@@ -59,11 +81,63 @@ fn draw_header(f: &mut Frame, area: Rect, app: &App) {
 }
 
 fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
-    let keys = match app.input_mode {
-        InputMode::Normal => {
-            "Tab: Next | Enter: Select | q: Quit | n: New | e: Edit | r: Refresh | s: Search | d: Dashboard | h: Help"
+    let keys = if app.confirm_delete.is_some() {
+        // Confirmation dialog is active
+        "Y: Confirm deletion | N/ESC: Cancel"
+    } else if app.search_input_mode {
+        // Search input mode
+        "Type to search | Enter: Execute search | ESC: Stop typing"
+    } else {
+        match app.input_mode {
+            InputMode::Editing => {
+                // Form editing mode
+                match &app.screen {
+                    Screen::CustomerCreate | Screen::CustomerEdit(_) => {
+                        match app.input_field {
+                            0 => "Name (required) | Enter: Next field | ESC: Cancel",
+                            1 => "Email (required) | Enter: Next field | ESC: Cancel",
+                            2 => "Phone (required) | Enter: Next field | ESC: Cancel",
+                            3 => "Website (optional) | Enter: Submit | ESC: Cancel",
+                            _ => "Enter: Submit | ESC: Cancel",
+                        }
+                    }
+                    Screen::ArticleCreate => {
+                        match app.input_field {
+                            0 => "Name (required) | Enter: Next field | ESC: Cancel",
+                            1 => "Sales Price (required) | Enter: Submit | ESC: Cancel",
+                            _ => "Enter: Submit | ESC: Cancel",
+                        }
+                    }
+                    Screen::InvoiceCreate => {
+                        match app.input_field {
+                            0 => "Customer ID (required) | Enter: Next field | ESC: Cancel",
+                            1 => "Description (required) | Enter: Next field | ESC: Cancel",
+                            2 => "Amount (required) | Enter: Submit | ESC: Cancel",
+                            _ => "Enter: Submit | ESC: Cancel",
+                        }
+                    }
+                    _ => "Enter: Next field | ESC: Cancel",
+                }
+            }
+            InputMode::Normal => {
+                // Context-specific shortcuts
+                match &app.screen {
+                    Screen::Home => "↑↓: Navigate | Enter: Select | Tab: Next screen | q: Quit | h: Help",
+                    Screen::Dashboard => "↑↓: Navigate | Enter: Select | r: Refresh | s: Search | h: Help",
+                    Screen::Customers => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
+                    Screen::CustomerDetail(_) => "e: Edit | x: Delete | ESC: Back | s: Search | d: Dashboard",
+                    Screen::Invoices => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
+                    Screen::InvoiceDetail(_) => "x: Delete | ESC: Back | s: Search | d: Dashboard",
+                    Screen::Articles => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
+                    Screen::ArticleDetail(_) => "x: Delete | ESC: Back | s: Search | d: Dashboard",
+                    Screen::Search => "Start typing to search | Enter: Execute | ESC: Back | d: Dashboard",
+                    Screen::Export => "Enter: Export | ESC: Back | d: Dashboard | h: Help",
+                    Screen::Help => "ESC: Back | d: Dashboard | s: Search",
+                    Screen::Auth => "Enter: Start OAuth | q: Quit",
+                    _ => "ESC: Back | s: Search | d: Dashboard | h: Help",
+                }
+            }
         }
-        InputMode::Editing => "Enter: Next field | Esc: Cancel",
     };
 
     let footer = Paragraph::new(keys)
@@ -141,7 +215,19 @@ fn draw_auth(f: &mut Frame, area: Rect, app: &App) {
 
 fn draw_customers(f: &mut Frame, area: Rect, app: &App) {
     if app.loading {
-        let loading = Paragraph::new("Loading customers...")
+        let loading_text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "⏳ Loading customers...",
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "Please wait",
+                Style::default().fg(Color::Gray),
+            )),
+        ];
+        let loading = Paragraph::new(loading_text)
             .block(Block::default().borders(Borders::ALL).title("Customers"))
             .alignment(Alignment::Center);
         f.render_widget(loading, area);
@@ -149,7 +235,19 @@ fn draw_customers(f: &mut Frame, area: Rect, app: &App) {
     }
 
     if app.customers.is_empty() {
-        let empty = Paragraph::new("No customers found. Press 'n' to create a new customer.")
+        let empty_text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "📋 No customers found",
+                Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "Press 'n' to create a new customer",
+                Style::default().fg(Color::Gray),
+            )),
+        ];
+        let empty = Paragraph::new(empty_text)
             .block(Block::default().borders(Borders::ALL).title("Customers"))
             .alignment(Alignment::Center);
         f.render_widget(empty, area);
@@ -201,7 +299,14 @@ fn draw_customer_form(f: &mut Frame, area: Rect, app: &App) {
     let fields = vec!["Name", "Email", "Phone", "Website (optional)"];
     let current_field = app.input_field;
 
-    let mut text = vec![Line::from("Create New Customer"), Line::from("")];
+    let mut text = vec![
+        Line::from("Create New Customer"),
+        Line::from(Span::styled(
+            format!("Field {}/{}", current_field + 1, fields.len()),
+            Style::default().fg(Color::Cyan),
+        )),
+        Line::from(""),
+    ];
 
     for (i, field) in fields.iter().enumerate() {
         let value = app.form_data.get(i).map(|s| s.as_str()).unwrap_or("");
@@ -289,7 +394,19 @@ fn draw_customer_detail(f: &mut Frame, area: Rect, app: &App, id: &str) {
 
 fn draw_invoices(f: &mut Frame, area: Rect, app: &App) {
     if app.loading {
-        let loading = Paragraph::new("Loading invoices...")
+        let loading_text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "⏳ Loading invoices...",
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "Please wait",
+                Style::default().fg(Color::Gray),
+            )),
+        ];
+        let loading = Paragraph::new(loading_text)
             .block(Block::default().borders(Borders::ALL).title("Invoices"))
             .alignment(Alignment::Center);
         f.render_widget(loading, area);
@@ -297,7 +414,19 @@ fn draw_invoices(f: &mut Frame, area: Rect, app: &App) {
     }
 
     if app.invoices.is_empty() {
-        let empty = Paragraph::new("No invoices found. Press 'n' to create a new invoice.")
+        let empty_text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "🧾 No invoices found",
+                Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "Press 'n' to create a new invoice",
+                Style::default().fg(Color::Gray),
+            )),
+        ];
+        let empty = Paragraph::new(empty_text)
             .block(Block::default().borders(Borders::ALL).title("Invoices"))
             .alignment(Alignment::Center);
         f.render_widget(empty, area);
@@ -352,7 +481,14 @@ fn draw_invoice_form(f: &mut Frame, area: Rect, app: &App) {
     let fields = vec!["Customer ID", "Description/Remarks", "Amount (SEK)"];
     let current_field = app.input_field;
 
-    let mut text = vec![Line::from("Create New Invoice"), Line::from("")];
+    let mut text = vec![
+        Line::from("Create New Invoice"),
+        Line::from(Span::styled(
+            format!("Field {}/{}", current_field + 1, fields.len()),
+            Style::default().fg(Color::Cyan),
+        )),
+        Line::from(""),
+    ];
 
     for (i, field) in fields.iter().enumerate() {
         let value = app.form_data.get(i).map(|s| s.as_str()).unwrap_or("");
@@ -530,7 +666,19 @@ fn draw_dashboard(f: &mut Frame, area: Rect, app: &App) {
 
 fn draw_articles(f: &mut Frame, area: Rect, app: &App) {
     if app.loading {
-        let loading = Paragraph::new("Loading articles...")
+        let loading_text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "⏳ Loading articles...",
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "Please wait",
+                Style::default().fg(Color::Gray),
+            )),
+        ];
+        let loading = Paragraph::new(loading_text)
             .block(Block::default().borders(Borders::ALL).title("Articles"))
             .alignment(Alignment::Center);
         f.render_widget(loading, area);
@@ -538,7 +686,19 @@ fn draw_articles(f: &mut Frame, area: Rect, app: &App) {
     }
 
     if app.articles.is_empty() {
-        let empty = Paragraph::new("No articles found. Press 'n' to create a new article.")
+        let empty_text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "🏷️ No articles found",
+                Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "Press 'n' to create a new article",
+                Style::default().fg(Color::Gray),
+            )),
+        ];
+        let empty = Paragraph::new(empty_text)
             .block(Block::default().borders(Borders::ALL).title("Articles"))
             .alignment(Alignment::Center);
         f.render_widget(empty, area);
@@ -640,7 +800,14 @@ fn draw_article_form(f: &mut Frame, area: Rect, app: &App) {
     let fields = vec!["Name", "Sales Price (SEK)"];
     let current_field = app.input_field;
 
-    let mut text = vec![Line::from("Create New Article"), Line::from("")];
+    let mut text = vec![
+        Line::from("Create New Article"),
+        Line::from(Span::styled(
+            format!("Field {}/{}", current_field + 1, fields.len()),
+            Style::default().fg(Color::Cyan),
+        )),
+        Line::from(""),
+    ];
 
     for (i, field) in fields.iter().enumerate() {
         let value = app.form_data.get(i).map(|s| s.as_str()).unwrap_or("");
@@ -687,7 +854,14 @@ fn draw_customer_edit_form(f: &mut Frame, area: Rect, app: &App, _id: &str) {
     let fields = vec!["Name", "Email", "Phone", "Website (optional)"];
     let current_field = app.input_field;
 
-    let mut text = vec![Line::from("Edit Customer"), Line::from("")];
+    let mut text = vec![
+        Line::from("Edit Customer"),
+        Line::from(Span::styled(
+            format!("Field {}/{}", current_field + 1, fields.len()),
+            Style::default().fg(Color::Cyan),
+        )),
+        Line::from(""),
+    ];
 
     for (i, field) in fields.iter().enumerate() {
         let value = app.form_data.get(i).map(|s| s.as_str()).unwrap_or("");
@@ -802,4 +976,53 @@ fn draw_export(f: &mut Frame, area: Rect, app: &App) {
         .alignment(Alignment::Center);
 
     f.render_widget(paragraph, area);
+}
+
+fn draw_confirmation_dialog(f: &mut Frame, app: &App) {
+    if let Some((entity_type, _id)) = &app.confirm_delete {
+        // Create a centered popup
+        let area = f.area();
+        let popup_width = 60;
+        let popup_height = 7;
+
+        let popup_area = Rect {
+            x: (area.width.saturating_sub(popup_width)) / 2,
+            y: (area.height.saturating_sub(popup_height)) / 2,
+            width: popup_width.min(area.width),
+            height: popup_height.min(area.height),
+        };
+
+        let text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                format!("⚠ Delete {} confirmation", entity_type),
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from("Are you sure you want to delete this item?"),
+            Line::from("This action cannot be undone."),
+            Line::from(""),
+            Line::from(vec![
+                Span::styled("Y", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+                Span::raw("es  "),
+                Span::styled("N", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+                Span::raw("o  "),
+                Span::styled("ESC", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+                Span::raw(" to cancel"),
+            ]),
+        ];
+
+        let paragraph = Paragraph::new(text)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(Color::Red))
+                    .title("Confirm Delete")
+                    .style(Style::default().bg(Color::Black)),
+            )
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: false });
+
+        f.render_widget(paragraph, popup_area);
+    }
 }

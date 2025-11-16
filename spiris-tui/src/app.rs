@@ -75,6 +75,9 @@ pub struct App {
     pub loading: bool,
     pub needs_refresh: bool,
 
+    // Confirmation state
+    pub confirm_delete: Option<(String, String)>, // (entity_type, entity_id)
+
     // OAuth state
     pub oauth_url: Option<String>,
     pub oauth_waiting: bool,
@@ -131,6 +134,7 @@ impl App {
             validation_error: None,
             loading: false,
             needs_refresh: false,
+            confirm_delete: None,
             oauth_url: None,
             oauth_waiting: false,
         }
@@ -141,7 +145,10 @@ impl App {
     }
 
     pub fn handle_escape(&mut self) {
-        if self.search_input_mode {
+        if self.confirm_delete.is_some() {
+            // Cancel delete confirmation
+            self.confirm_delete = None;
+        } else if self.search_input_mode {
             self.search_input_mode = false;
             self.input.clear();
         } else if self.input_mode == InputMode::Editing {
@@ -313,6 +320,17 @@ impl App {
             if self.search_input_mode {
                 self.search_query = self.input.clone();
             }
+        } else if self.confirm_delete.is_some() {
+            // Handle confirmation dialog
+            match c {
+                'y' | 'Y' => {
+                    self.execute_delete();
+                }
+                'n' | 'N' => {
+                    self.confirm_delete = None;
+                }
+                _ => {}
+            }
         } else {
             match c {
                 'r' => {
@@ -351,16 +369,16 @@ impl App {
                     }
                 }
                 'x' => {
-                    // Delete key - delete current item
+                    // Delete key - show confirmation dialog
                     match &self.screen {
                         Screen::CustomerDetail(ref id) => {
-                            self.delete_customer(id.clone());
+                            self.confirm_delete = Some(("customer".to_string(), id.clone()));
                         }
                         Screen::InvoiceDetail(ref id) => {
-                            self.delete_invoice(id.clone());
+                            self.confirm_delete = Some(("invoice".to_string(), id.clone()));
                         }
                         Screen::ArticleDetail(ref id) => {
-                            self.delete_article(id.clone());
+                            self.confirm_delete = Some(("article".to_string(), id.clone()));
                         }
                         _ => {}
                     }
@@ -890,6 +908,17 @@ impl App {
         self.message_timer = 50; // 5 seconds at 10 ticks per second
     }
 
+    fn execute_delete(&mut self) {
+        if let Some((entity_type, id)) = self.confirm_delete.take() {
+            match entity_type.as_str() {
+                "customer" => self.delete_customer(id),
+                "invoice" => self.delete_invoice(id),
+                "article" => self.delete_article(id),
+                _ => {}
+            }
+        }
+    }
+
     fn delete_customer(&mut self, id: String) {
         if let Some(client) = &self.client {
             let client = client.clone();
@@ -1011,6 +1040,7 @@ impl Clone for App {
             validation_error: self.validation_error.clone(),
             loading: self.loading,
             needs_refresh: self.needs_refresh,
+            confirm_delete: self.confirm_delete.clone(),
             oauth_url: self.oauth_url.clone(),
             oauth_waiting: self.oauth_waiting,
         }

@@ -24,8 +24,12 @@ A powerful and comprehensive Terminal User Interface (TUI) for managing all aspe
 - 📄 **Pagination Support** - Navigate through multiple pages with ← → keys
 - ⏱️ **Auto-clearing Messages** - Status and error messages auto-dismiss after timeout
 - 🔍 **Live Search Input** - Type to search with real-time query updates
-- 🎨 **Beautiful UI** - Clean and intuitive terminal interface built with Ratatui
+- ✅ **Delete Confirmation** - Safety dialog prevents accidental deletions
+- 📊 **Form Progress Indicators** - Clear field progress tracking (Field 2/4)
+- 🎯 **Context-Aware Footer** - Dynamic shortcuts based on current screen
+- 🎨 **Beautiful UI** - Clean and intuitive terminal interface with color-coded states
 - ⚡ **Fast Performance** - Optimized async operations with Tokio
+- 💡 **Enhanced Loading States** - Clear visual feedback during data loading
 
 ## Screenshots
 
@@ -367,7 +371,6 @@ If data doesn't appear:
 - **CSV Export**: Only JSON export currently supported (CSV/PDF coming soon)
 - **Article Editing**: Articles cannot be edited after creation (can only delete)
 - **Total Page Count**: Page count estimation is approximate (API doesn't return total count)
-- **Delete Confirmation**: No confirmation dialog before deleting (use with caution!)
 
 ## Roadmap
 
@@ -383,6 +386,11 @@ If data doesn't appear:
 - [x] ✅ Improved refresh mechanism
 - [x] ✅ Input validation for forms (email, numbers, required fields)
 - [x] ✅ Delete functionality for customers, invoices, and articles
+- [x] ✅ Delete confirmation dialog for safety
+- [x] ✅ Context-aware footer with relevant shortcuts
+- [x] ✅ Form progress indicators (Field X/Y)
+- [x] ✅ Enhanced loading indicators with better visuals
+- [x] ✅ Color-coded UI states (success, error, warning, loading)
 - [ ] 🚧 Advanced filtering with multiple criteria
 - [ ] 🚧 Invoice and article editing
 - [ ] 🚧 CSV and PDF export formats
