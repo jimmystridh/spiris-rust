@@ -1,4 +1,4 @@
-use crate::app::{App, InputMode, Screen};
+use crate::app::{App, InputMode, Screen, SortOrder, CustomerSortField, InvoiceSortField, ArticleSortField};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
@@ -6,6 +6,41 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
     Frame,
 };
+
+fn get_sort_indicator(order: &SortOrder) -> &str {
+    match order {
+        SortOrder::Ascending => "↑",
+        SortOrder::Descending => "↓",
+    }
+}
+
+fn get_customer_sort_info(app: &App) -> String {
+    let field = match app.customer_sort_field {
+        CustomerSortField::Name => "Name",
+        CustomerSortField::Email => "Email",
+        CustomerSortField::CustomerNumber => "Number",
+    };
+    format!("{} {}", field, get_sort_indicator(&app.customer_sort_order))
+}
+
+fn get_invoice_sort_info(app: &App) -> String {
+    let field = match app.invoice_sort_field {
+        InvoiceSortField::InvoiceNumber => "Number",
+        InvoiceSortField::CustomerID => "Customer",
+        InvoiceSortField::Date => "Date",
+        InvoiceSortField::Amount => "Amount",
+    };
+    format!("{} {}", field, get_sort_indicator(&app.invoice_sort_order))
+}
+
+fn get_article_sort_info(app: &App) -> String {
+    let field = match app.article_sort_field {
+        ArticleSortField::Name => "Name",
+        ArticleSortField::Price => "Price",
+        ArticleSortField::ArticleNumber => "Number",
+    };
+    format!("{} {}", field, get_sort_indicator(&app.article_sort_order))
+}
 
 pub fn draw(f: &mut Frame, app: &App) {
     let chunks = Layout::default()
@@ -124,13 +159,13 @@ fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
             InputMode::Normal => {
                 // Context-specific shortcuts
                 match &app.screen {
-                    Screen::Home => "↑↓: Navigate | Enter: Select | Tab: Next screen | q: Quit | h: Help",
-                    Screen::Dashboard => "↑↓: Navigate | Enter: Select | r: Refresh | s: Search | h: Help",
-                    Screen::Customers => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
+                    Screen::Home => "↑↓: Navigate | Enter: Select | c/i/a: Quick jump | q: Quit | h: Help",
+                    Screen::Dashboard => "↑↓: Navigate | Enter: Select | c/i/a: Quick jump | r: Refresh | h: Help",
+                    Screen::Customers => "↑↓: Select | ←→: Page | o: Sort | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
                     Screen::CustomerDetail(_) => "e: Edit | x: Delete | ESC: Back | s: Search | d: Dashboard",
-                    Screen::Invoices => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
+                    Screen::Invoices => "↑↓: Select | ←→: Page | o: Sort | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
                     Screen::InvoiceDetail(_) => "e: Edit | x: Delete | ESC: Back | s: Search | d: Dashboard",
-                    Screen::Articles => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
+                    Screen::Articles => "↑↓: Select | ←→: Page | o: Sort | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
                     Screen::ArticleDetail(_) => "e: Edit | x: Delete | ESC: Back | s: Search | d: Dashboard",
                     Screen::Search => "Start typing to search | Enter: Execute | ESC: Back | d: Dashboard",
                     Screen::Export => "↑↓: Navigate | Enter: Select/Toggle | ESC: Back | d: Dashboard",
@@ -273,8 +308,9 @@ fn draw_customers(f: &mut Frame, area: Rect, app: &App) {
         .collect();
 
     let title = format!(
-        "Customers (Page {} | ↑↓: select, ←→: page, Enter: view)",
-        app.current_page
+        "Customers (Page {} | Sort: {} | o: change sort | ↑↓: select, ←→: page)",
+        app.current_page,
+        get_customer_sort_info(app)
     );
 
     let list = List::new(items)
@@ -455,8 +491,9 @@ fn draw_invoices(f: &mut Frame, area: Rect, app: &App) {
         .collect();
 
     let title = format!(
-        "Invoices (Page {} | ↑↓: select, ←→: page, Enter: view)",
-        app.current_page
+        "Invoices (Page {} | Sort: {} | o: change sort | ↑↓: select, ←→: page)",
+        app.current_page,
+        get_invoice_sort_info(app)
     );
 
     let list = List::new(items)
@@ -659,11 +696,17 @@ fn draw_help(f: &mut Frame, area: Rect) {
         Line::from(""),
         Line::from("Actions:"),
         Line::from("  n              - Create new (customer/invoice/article)"),
-        Line::from("  e              - Edit selected item (customer)"),
+        Line::from("  e              - Edit selected item"),
         Line::from("  x              - Delete selected item"),
+        Line::from("  o              - Cycle sort options (in list views)"),
         Line::from("  r              - Refresh current view"),
+        Line::from(""),
+        Line::from("Quick Navigation:"),
         Line::from("  d              - Go to Dashboard"),
-        Line::from("  s              - Search"),
+        Line::from("  c              - Go to Customers"),
+        Line::from("  i              - Go to Invoices"),
+        Line::from("  a              - Go to Articles"),
+        Line::from("  s or /         - Search"),
         Line::from("  h or ?         - Show this help"),
         Line::from(""),
         Line::from("Screens:"),
@@ -689,10 +732,72 @@ fn draw_help(f: &mut Frame, area: Rect) {
     f.render_widget(paragraph, area);
 }
 fn draw_dashboard(f: &mut Frame, area: Rect, app: &App) {
+    // Split into two sections: stats display and quick actions
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(0), Constraint::Length(7)])
+        .split(area);
+
+    // Stats display (top)
+    let stats_text = vec![
+        Line::from(Span::styled(
+            "Business Overview",
+            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+        )),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Customers: ", Style::default().fg(Color::Yellow)),
+            Span::raw(format!("{} total", app.stats_total_customers)),
+            Span::styled(" | ", Style::default().fg(Color::Gray)),
+            Span::styled("Active: ", Style::default().fg(Color::Green)),
+            Span::raw(format!("{}", app.stats_active_customers)),
+        ]),
+        Line::from(vec![
+            Span::styled("Invoices: ", Style::default().fg(Color::Yellow)),
+            Span::raw(format!("{} total", app.stats_total_invoices)),
+            Span::styled(" | ", Style::default().fg(Color::Gray)),
+            Span::styled("Last 7 days: ", Style::default().fg(Color::Cyan)),
+            Span::raw(format!("{}", app.stats_recent_invoices_7d)),
+            Span::styled(" | ", Style::default().fg(Color::Gray)),
+            Span::styled("Last 30 days: ", Style::default().fg(Color::Cyan)),
+            Span::raw(format!("{}", app.stats_recent_invoices_30d)),
+        ]),
+        Line::from(vec![
+            Span::styled("Articles: ", Style::default().fg(Color::Yellow)),
+            Span::raw(format!("{}", app.stats_total_articles)),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(
+            "Revenue Statistics",
+            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+        )),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Total Revenue: ", Style::default().fg(Color::Yellow)),
+            Span::styled(
+                format!("{:.2} SEK", app.stats_total_revenue),
+                Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled("Average Invoice: ", Style::default().fg(Color::Yellow)),
+            Span::raw(format!("{:.2} SEK", app.stats_average_invoice)),
+        ]),
+    ];
+
+    let stats = Paragraph::new(stats_text)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Dashboard - Statistics"),
+        )
+        .wrap(Wrap { trim: false });
+
+    // Quick actions (bottom)
     let items = vec![
-        ListItem::new(format!("Customers: {}", app.stats_total_customers)),
-        ListItem::new(format!("Invoices: {}", app.stats_total_invoices)),
-        ListItem::new(format!("Articles: {}", app.stats_total_articles)),
+        ListItem::new("View Customers"),
+        ListItem::new("View Invoices"),
+        ListItem::new("View Articles"),
         ListItem::new("Export All Data"),
     ];
 
@@ -700,7 +805,7 @@ fn draw_dashboard(f: &mut Frame, area: Rect, app: &App) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Dashboard - Statistics & Quick Actions"),
+                .title("Quick Actions (↑↓: select, Enter: go)"),
         )
         .highlight_style(
             Style::default()
@@ -709,9 +814,10 @@ fn draw_dashboard(f: &mut Frame, area: Rect, app: &App) {
         )
         .highlight_symbol(">> ");
 
+    f.render_widget(stats, chunks[0]);
     f.render_stateful_widget(
         list,
-        area,
+        chunks[1],
         &mut ratatui::widgets::ListState::default().with_selected(Some(app.selected_customer)),
     );
 }
@@ -777,8 +883,9 @@ fn draw_articles(f: &mut Frame, area: Rect, app: &App) {
         .collect();
 
     let title = format!(
-        "Articles (Page {} | ↑↓: select, ←→: page, Enter: view)",
-        app.current_page
+        "Articles (Page {} | Sort: {} | o: change sort | ↑↓: select, ←→: page)",
+        app.current_page,
+        get_article_sort_info(app)
     );
 
     let list = List::new(items)

@@ -8,13 +8,14 @@ A powerful and comprehensive Terminal User Interface (TUI) for managing all aspe
 ## Features
 
 ### Core Functionality
-- 📊 **Statistics Dashboard** - View real-time statistics for customers, invoices, and articles
+- 📊 **Enhanced Statistics Dashboard** - View comprehensive business metrics including revenue, active customers, and recent activity
 - 👥 **Customer Management** - Full CRUD operations: List, view, create, edit, delete, and search customers
-- 🧾 **Invoice Management** - Complete invoice handling: Browse, view, create, delete invoices with line items
+- 🧾 **Invoice Management** - Complete invoice handling: Browse, view, create, edit, delete invoices with line items
 - 🏷️ **Article/Product Management** - Full CRUD operations: Create, view, edit, delete articles with prices
 - 🔍 **Smart Search** - Search across customers and invoices with real-time filtering
 - 💾 **Data Export** - Export all data to JSON or CSV formats with timestamps
 - ✅ **Input Validation** - Real-time validation for all form inputs with helpful error messages
+- 🔄 **Smart Sorting** - Sort lists by multiple criteria (name, number, date, amount) with ascending/descending order
 
 ### User Experience
 - 🔐 **OAuth2 Authentication** - Secure authentication with automatic token handling
@@ -123,12 +124,21 @@ cargo run --release
 | Key | Action | Available In |
 |-----|--------|--------------|
 | `n` | Create new | Customers, Invoices, Articles |
-| `e` | Edit selected item | Customer Detail, Article Detail |
+| `e` | Edit selected item | Customer Detail, Invoice Detail, Article Detail |
 | `x` | Delete selected item (with confirmation) | Customer/Invoice/Article Detail |
+| `o` | Cycle sort options | Customers, Invoices, Articles lists |
 | `r` | Refresh current view | Customers, Invoices, Articles, Dashboard |
+
+#### Quick Navigation
+
+| Key | Action | Available From |
+|-----|--------|----------------|
 | `d` | Go to Dashboard | Any screen |
-| `s` | Open Search | Any screen |
-| `h` or `?` | Show help | Any screen |
+| `c` | Go to Customers | Any screen |
+| `i` | Go to Invoices | Any screen (normal mode) |
+| `a` | Go to Articles | Any screen (normal mode) |
+| `s` or `/` | Open Search | Any screen |
+| `h` or `?` | Show Help | Any screen |
 
 ### Screens
 
@@ -157,23 +167,36 @@ Use `↑`/`↓` to navigate and `Enter` to select.
 
 #### 3. Dashboard Screen
 
-The dashboard displays real-time statistics and provides quick access:
-- Total number of customers
-- Total number of invoices
-- Total number of articles
-- Quick export action
+The dashboard displays comprehensive business metrics in two sections:
 
-Press `Enter` on any item to navigate to that section or export all data.
+**Business Overview:**
+- Total customers with active customer count
+- Total invoices with recent activity (last 7 and 30 days)
+- Total articles count
 
-#### 3. Customers Screen
+**Revenue Statistics:**
+- Total revenue (sum of all invoices including VAT)
+- Average invoice amount
 
-- Browse all customers with pagination
+**Quick Actions:**
+- View Customers
+- View Invoices
+- View Articles
+- Export All Data
+
+Press `Enter` on any quick action to navigate directly to that section.
+
+#### 4. Customers Screen
+
+- Browse all customers with pagination and sorting
+- Sort by Name, Email, or Customer Number (press `o` to cycle)
+- Toggle between ascending ↑ and descending ↓ order
 - View customer details (number, name, email, phone)
 - Press `Enter` to view full customer details
 - Press `n` to create a new customer
 - Press `r` to refresh the customer list
 
-#### 4. Customer Creation
+#### 5. Customer Creation
 
 Fill in the form fields:
 1. Name (required)
@@ -183,14 +206,17 @@ Fill in the form fields:
 
 Press `Enter` after each field. The customer is created automatically after the last field.
 
-#### 5. Invoices Screen
+#### 6. Invoices Screen
 
-- Browse all invoices with pagination
+- Browse all invoices with pagination and sorting
+- Sort by Invoice Number, Customer ID, Date, or Amount (press `o` to cycle)
+- Toggle between ascending ↑ and descending ↓ order
 - View invoice number, customer, and total amount
 - Press `Enter` to view full invoice details
+- Press `n` to create a new invoice
 - Press `r` to refresh the invoice list
 
-#### 6. Invoice Detail View
+#### 7. Invoice Detail View
 
 View complete invoice information:
 - Invoice number
@@ -203,7 +229,7 @@ View complete invoice information:
 
 Press `e` to edit the invoice, `x` to delete (with confirmation), or `Esc` to return to the invoice list.
 
-#### 7. Invoice Editing
+#### 8. Invoice Editing
 
 From the Invoice Detail view, press `e` to edit:
 1. Pre-populated form with existing data
@@ -211,7 +237,7 @@ From the Invoice Detail view, press `e` to edit:
 3. Press `Enter` to save changes
 4. Returns to Invoice Detail view after successful update
 
-#### 8. Customer Editing
+#### 9. Customer Editing
 
 From the Customer Detail view, press `e` to edit:
 1. Pre-populated form with existing data
@@ -219,15 +245,17 @@ From the Customer Detail view, press `e` to edit:
 3. Press `Enter` to save changes
 4. Returns to Customer Detail view after successful update
 
-#### 9. Articles/Products Screen
+#### 10. Articles/Products Screen
 
-- Browse all articles/products with pagination
+- Browse all articles/products with pagination and sorting
+- Sort by Name, Sales Price, or Article Number (press `o` to cycle)
+- Toggle between ascending ↑ and descending ↓ order
 - View article name, number, and sales price
 - Press `Enter` to view full article details
 - Press `n` to create a new article
 - Press `r` to refresh the articles list
 
-#### 10. Article Creation
+#### 11. Article Creation
 
 Fill in the form fields:
 1. Name (required)
@@ -235,7 +263,7 @@ Fill in the form fields:
 
 Press `Enter` after each field. The article is created automatically after the last field.
 
-#### 11. Article Detail View
+#### 12. Article Detail View
 
 View complete article information:
 - Article ID
@@ -248,7 +276,7 @@ View complete article information:
 
 Press `e` to edit the article, `x` to delete (with confirmation), or `Esc` to return to the articles list.
 
-#### 12. Article Editing
+#### 13. Article Editing
 
 From the Article Detail view, press `e` to edit:
 1. Pre-populated form with existing data
@@ -256,7 +284,7 @@ From the Article Detail view, press `e` to edit:
 3. Press `Enter` to save changes
 4. Returns to Article Detail view after successful update
 
-#### 13. Invoice Creation
+#### 14. Invoice Creation
 
 Fill in the form fields:
 1. Customer ID (required)
@@ -265,7 +293,7 @@ Fill in the form fields:
 
 Press `Enter` after each field. A simple invoice with one line item is created automatically.
 
-#### 14. Search Screen
+#### 15. Search Screen
 
 Real-time search across customers and invoices:
 - Start typing to enter search mode (query updates live)
@@ -275,7 +303,7 @@ Real-time search across customers and invoices:
 - Search is performed on names, emails, customer IDs, and remarks
 - Client-side filtering for fast results
 
-#### 15. Export Screen
+#### 16. Export Screen
 
 Export all loaded data to JSON or CSV files:
 - Use `↑`/`↓` to select format or export option
@@ -289,7 +317,7 @@ Export all loaded data to JSON or CSV files:
 - Files are saved in the current directory
 - Status message shows export results
 
-#### 16. Help Screen
+#### 17. Help Screen
 
 Press `h` or `?` from any screen to view the help page with all keyboard shortcuts and available screens.
 
@@ -411,9 +439,11 @@ If data doesn't appear:
 - [x] ✅ Article editing (complete CRUD for articles)
 - [x] ✅ CSV export format (in addition to JSON)
 - [x] ✅ Invoice editing (complete CRUD for all entities!)
+- [x] ✅ Sort options for lists (by name, date, amount, number)
+- [x] ✅ Enhanced dashboard statistics (revenue, active customers, recent activity)
+- [x] ✅ Quick navigation shortcuts (c/i/a, /)
 - [ ] 🚧 Advanced filtering with multiple criteria
 - [ ] 🚧 PDF export format
-- [ ] 🚧 Sort options for lists (by name, date, amount, etc.)
 - [ ] 🚧 Multi-account support
 - [ ] 🚧 Keyboard shortcut customization
 - [ ] 🚧 Batch operations (bulk delete, bulk edit)

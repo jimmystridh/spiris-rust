@@ -61,10 +61,23 @@ pub struct App {
     pub export_format: ExportFormat,
     pub export_selection: usize,
 
+    // Sort state
+    pub customer_sort_field: CustomerSortField,
+    pub customer_sort_order: SortOrder,
+    pub invoice_sort_field: InvoiceSortField,
+    pub invoice_sort_order: SortOrder,
+    pub article_sort_field: ArticleSortField,
+    pub article_sort_order: SortOrder,
+
     // Statistics
     pub stats_total_customers: usize,
     pub stats_total_invoices: usize,
     pub stats_total_articles: usize,
+    pub stats_active_customers: usize,
+    pub stats_total_revenue: f64,
+    pub stats_average_invoice: f64,
+    pub stats_recent_invoices_7d: usize,
+    pub stats_recent_invoices_30d: usize,
 
     // Form inputs
     pub input: String,
@@ -102,6 +115,34 @@ pub enum ExportFormat {
     Csv,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum SortOrder {
+    Ascending,
+    Descending,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum CustomerSortField {
+    Name,
+    Email,
+    CustomerNumber,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum InvoiceSortField {
+    InvoiceNumber,
+    CustomerID,
+    Date,
+    Amount,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ArticleSortField {
+    Name,
+    Price,
+    ArticleNumber,
+}
+
 impl App {
     pub fn new() -> Self {
         // Try to load token from file
@@ -136,9 +177,20 @@ impl App {
             search_input_mode: false,
             export_format: ExportFormat::Csv,
             export_selection: 0,
+            customer_sort_field: CustomerSortField::Name,
+            customer_sort_order: SortOrder::Ascending,
+            invoice_sort_field: InvoiceSortField::InvoiceNumber,
+            invoice_sort_order: SortOrder::Ascending,
+            article_sort_field: ArticleSortField::Name,
+            article_sort_order: SortOrder::Ascending,
             stats_total_customers: 0,
             stats_total_invoices: 0,
             stats_total_articles: 0,
+            stats_active_customers: 0,
+            stats_total_revenue: 0.0,
+            stats_average_invoice: 0.0,
+            stats_recent_invoices_7d: 0,
+            stats_recent_invoices_30d: 0,
             input: String::new(),
             input_field: 0,
             form_data: Vec::new(),
@@ -432,6 +484,40 @@ impl App {
                     }
                 }
                 's' => {
+                    self.screen = Screen::Search;
+                    self.search_input_mode = true;
+                    self.input = self.search_query.clone();
+                }
+                'o' => {
+                    // Cycle sort options based on current screen
+                    match self.screen {
+                        Screen::Customers => self.cycle_customer_sort(),
+                        Screen::Invoices => self.cycle_invoice_sort(),
+                        Screen::Articles => self.cycle_article_sort(),
+                        _ => {}
+                    }
+                }
+                'c' => {
+                    // Quick jump to Customers
+                    self.screen = Screen::Customers;
+                    self.needs_refresh = true;
+                }
+                'i' => {
+                    // Quick jump to Invoices (only if not in input mode)
+                    if self.input_mode == InputMode::Normal {
+                        self.screen = Screen::Invoices;
+                        self.needs_refresh = true;
+                    }
+                }
+                'a' => {
+                    // Quick jump to Articles (only if not in input mode)
+                    if self.input_mode == InputMode::Normal {
+                        self.screen = Screen::Articles;
+                        self.needs_refresh = true;
+                    }
+                }
+                '/' => {
+                    // Alternative shortcut for search
                     self.screen = Screen::Search;
                     self.search_input_mode = true;
                     self.input = self.search_query.clone();
@@ -808,6 +894,166 @@ impl App {
         Ok(())
     }
 
+    pub fn cycle_customer_sort(&mut self) {
+        use CustomerSortField::*;
+        self.customer_sort_field = match self.customer_sort_field {
+            Name => Email,
+            Email => CustomerNumber,
+            CustomerNumber => {
+                // Cycle sort order instead
+                self.customer_sort_order = match self.customer_sort_order {
+                    SortOrder::Ascending => SortOrder::Descending,
+                    SortOrder::Descending => SortOrder::Ascending,
+                };
+                Name
+            }
+        };
+        self.sort_customers();
+    }
+
+    pub fn cycle_invoice_sort(&mut self) {
+        use InvoiceSortField::*;
+        self.invoice_sort_field = match self.invoice_sort_field {
+            InvoiceNumber => CustomerID,
+            CustomerID => Date,
+            Date => Amount,
+            Amount => {
+                // Cycle sort order instead
+                self.invoice_sort_order = match self.invoice_sort_order {
+                    SortOrder::Ascending => SortOrder::Descending,
+                    SortOrder::Descending => SortOrder::Ascending,
+                };
+                InvoiceNumber
+            }
+        };
+        self.sort_invoices();
+    }
+
+    pub fn cycle_article_sort(&mut self) {
+        use ArticleSortField::*;
+        self.article_sort_field = match self.article_sort_field {
+            Name => Price,
+            Price => ArticleNumber,
+            ArticleNumber => {
+                // Cycle sort order instead
+                self.article_sort_order = match self.article_sort_order {
+                    SortOrder::Ascending => SortOrder::Descending,
+                    SortOrder::Descending => SortOrder::Ascending,
+                };
+                Name
+            }
+        };
+        self.sort_articles();
+    }
+
+    fn sort_customers(&mut self) {
+        use CustomerSortField::*;
+        match self.customer_sort_field {
+            Name => {
+                self.customers.sort_by(|a, b| {
+                    let ord = a.name.cmp(&b.name);
+                    match self.customer_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+            Email => {
+                self.customers.sort_by(|a, b| {
+                    let ord = a.email.cmp(&b.email);
+                    match self.customer_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+            CustomerNumber => {
+                self.customers.sort_by(|a, b| {
+                    let ord = a.customer_number.cmp(&b.customer_number);
+                    match self.customer_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+        }
+    }
+
+    fn sort_invoices(&mut self) {
+        use InvoiceSortField::*;
+        match self.invoice_sort_field {
+            InvoiceNumber => {
+                self.invoices.sort_by(|a, b| {
+                    let ord = a.invoice_number.cmp(&b.invoice_number);
+                    match self.invoice_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+            CustomerID => {
+                self.invoices.sort_by(|a, b| {
+                    let ord = a.customer_id.cmp(&b.customer_id);
+                    match self.invoice_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+            Date => {
+                self.invoices.sort_by(|a, b| {
+                    let ord = a.invoice_date.cmp(&b.invoice_date);
+                    match self.invoice_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+            Amount => {
+                self.invoices.sort_by(|a, b| {
+                    let ord = a.total_amount.partial_cmp(&b.total_amount).unwrap_or(std::cmp::Ordering::Equal);
+                    match self.invoice_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+        }
+    }
+
+    fn sort_articles(&mut self) {
+        use ArticleSortField::*;
+        match self.article_sort_field {
+            Name => {
+                self.articles.sort_by(|a, b| {
+                    let ord = a.name.cmp(&b.name);
+                    match self.article_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+            Price => {
+                self.articles.sort_by(|a, b| {
+                    let ord = a.sales_price.partial_cmp(&b.sales_price).unwrap_or(std::cmp::Ordering::Equal);
+                    match self.article_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+            ArticleNumber => {
+                self.articles.sort_by(|a, b| {
+                    let ord = a.article_number.cmp(&b.article_number);
+                    match self.article_sort_order {
+                        SortOrder::Ascending => ord,
+                        SortOrder::Descending => ord.reverse(),
+                    }
+                });
+            }
+        }
+    }
+
     pub async fn load_customers(&mut self) -> Result<()> {
         if let Some(client) = &self.client {
             self.loading = true;
@@ -817,6 +1063,7 @@ impl App {
             match client.customers().list(Some(params)).await {
                 Ok(response) => {
                     self.customers = response.data;
+                    self.sort_customers(); // Apply current sort
                     // Update total pages based on metadata if available
                     // For now, just assume there might be more pages
                     self.total_pages = self.current_page + 1;
@@ -841,6 +1088,7 @@ impl App {
             match client.invoices().list(Some(params)).await {
                 Ok(response) => {
                     self.invoices = response.data;
+                    self.sort_invoices(); // Apply current sort
                     self.total_pages = self.current_page + 1;
                     self.loading = false;
                     self.error_message = None;
@@ -863,6 +1111,7 @@ impl App {
             match client.articles().list(Some(params)).await {
                 Ok(response) => {
                     self.articles = response.data;
+                    self.sort_articles(); // Apply current sort
                     self.stats_total_articles = self.articles.len();
                     self.total_pages = self.current_page + 1;
                     self.loading = false;
@@ -1114,9 +1363,49 @@ impl App {
             self.load_invoices().await?;
             self.load_articles().await?;
 
+            // Basic counts
             self.stats_total_customers = self.customers.len();
             self.stats_total_invoices = self.invoices.len();
             self.stats_total_articles = self.articles.len();
+
+            // Active customers
+            self.stats_active_customers = self.customers.iter().filter(|c| c.is_active.unwrap_or(false)).count();
+
+            // Revenue calculations
+            let total: f64 = self.invoices.iter()
+                .filter_map(|inv| inv.total_amount_including_vat)
+                .sum();
+            self.stats_total_revenue = total;
+            self.stats_average_invoice = if self.stats_total_invoices > 0 {
+                total / self.stats_total_invoices as f64
+            } else {
+                0.0
+            };
+
+            // Recent invoices (7 and 30 days)
+            let now = chrono::Utc::now();
+            let seven_days_ago = now - chrono::Duration::days(7);
+            let thirty_days_ago = now - chrono::Duration::days(30);
+
+            self.stats_recent_invoices_7d = self.invoices.iter()
+                .filter(|inv| {
+                    if let Some(date) = inv.invoice_date {
+                        date >= seven_days_ago
+                    } else {
+                        false
+                    }
+                })
+                .count();
+
+            self.stats_recent_invoices_30d = self.invoices.iter()
+                .filter(|inv| {
+                    if let Some(date) = inv.invoice_date {
+                        date >= thirty_days_ago
+                    } else {
+                        false
+                    }
+                })
+                .count();
         }
         Ok(())
     }
@@ -1281,9 +1570,20 @@ impl Clone for App {
             search_input_mode: self.search_input_mode,
             export_format: self.export_format.clone(),
             export_selection: self.export_selection,
+            customer_sort_field: self.customer_sort_field.clone(),
+            customer_sort_order: self.customer_sort_order.clone(),
+            invoice_sort_field: self.invoice_sort_field.clone(),
+            invoice_sort_order: self.invoice_sort_order.clone(),
+            article_sort_field: self.article_sort_field.clone(),
+            article_sort_order: self.article_sort_order.clone(),
             stats_total_customers: self.stats_total_customers,
             stats_total_invoices: self.stats_total_invoices,
             stats_total_articles: self.stats_total_articles,
+            stats_active_customers: self.stats_active_customers,
+            stats_total_revenue: self.stats_total_revenue,
+            stats_average_invoice: self.stats_average_invoice,
+            stats_recent_invoices_7d: self.stats_recent_invoices_7d,
+            stats_recent_invoices_30d: self.stats_recent_invoices_30d,
             input: self.input.clone(),
             input_field: self.input_field,
             form_data: self.form_data.clone(),
