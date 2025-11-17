@@ -6,6 +6,7 @@
 use anyhow::Result;
 use spiris_bokforing::{AccessToken, Article, Client, Customer, Invoice, InvoiceRow, PaginationParams};
 use std::path::PathBuf;
+use crate::config::Config;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Screen {
@@ -41,6 +42,7 @@ pub struct App {
     pub input_mode: InputMode,
     pub client: Option<Client>,
     pub token: Option<AccessToken>,
+    pub config: Config,
 
     // Screen state
     pub customers: Vec<Customer>,
@@ -49,6 +51,15 @@ pub struct App {
     pub selected_invoice: usize,
     pub articles: Vec<Article>,
     pub selected_article: usize,
+
+    // Batch selection mode
+    pub batch_mode: bool,
+    pub selected_items: Vec<usize>, // Indices of selected items
+
+    // Filter state
+    pub filter_active: bool,
+    pub filter_inactive: bool,
+    pub show_filter_panel: bool,
 
     // Pagination state
     pub current_page: u32,
@@ -154,10 +165,19 @@ impl App {
         let token = Self::load_token().ok();
         let client = token.as_ref().map(|t| Client::new(t.clone()));
 
+        // Load configuration
+        let config = Config::load().unwrap_or_default();
+
         let screen = if token.is_some() {
             Screen::Home
         } else {
             Screen::Auth
+        };
+
+        let page_size = config.pagination.default_page_size;
+        let export_format = match config.export.default_format.as_str() {
+            "json" => ExportFormat::Json,
+            _ => ExportFormat::Csv,
         };
 
         Self {
@@ -166,21 +186,27 @@ impl App {
             input_mode: InputMode::Normal,
             client,
             token,
+            config,
             customers: Vec::new(),
             selected_customer: 0,
             invoices: Vec::new(),
             selected_invoice: 0,
             articles: Vec::new(),
             selected_article: 0,
+            batch_mode: false,
+            selected_items: Vec::new(),
+            filter_active: true,
+            filter_inactive: true,
+            show_filter_panel: false,
             current_page: 1,
             total_pages: 1,
-            page_size: 50,
+            page_size,
             search_query: String::new(),
             search_results_customers: Vec::new(),
             search_results_invoices: Vec::new(),
             search_mode: SearchMode::All,
             search_input_mode: false,
-            export_format: ExportFormat::Csv,
+            export_format,
             export_selection: 0,
             customer_sort_field: CustomerSortField::Name,
             customer_sort_order: SortOrder::Ascending,
@@ -535,6 +561,24 @@ impl App {
                         self.cycle_search_mode();
                     }
                 }
+                'b' => {
+                    // Toggle batch mode (on list screens)
+                    if matches!(self.screen, Screen::Customers | Screen::Invoices | Screen::Articles) {
+                        self.toggle_batch_mode();
+                    }
+                }
+                ' ' => {
+                    // Toggle item selection in batch mode
+                    if self.batch_mode {
+                        self.toggle_item_selection();
+                    }
+                }
+                'f' => {
+                    // Toggle filter panel
+                    if matches!(self.screen, Screen::Customers | Screen::Invoices | Screen::Articles) {
+                        self.toggle_filter_panel();
+                    }
+                }
                 _ => {}
             }
         }
@@ -547,6 +591,74 @@ impl App {
             Customers => Invoices,
             Invoices => All,
         };
+    }
+
+    /// Toggle batch selection mode
+    pub fn toggle_batch_mode(&mut self) {
+        self.batch_mode = !self.batch_mode;
+        if !self.batch_mode {
+            self.selected_items.clear();
+        }
+        let status = if self.batch_mode {
+            "Batch mode enabled - press Space to select items, 'b' to exit"
+        } else {
+            "Batch mode disabled"
+        };
+        self.set_status(status.to_string());
+    }
+
+    /// Toggle selection of current item in batch mode
+    pub fn toggle_item_selection(&mut self) {
+        if !self.batch_mode {
+            return;
+        }
+
+        let current_idx = self.selected_customer; // Works for all list types
+        if let Some(pos) = self.selected_items.iter().position(|&idx| idx == current_idx) {
+            self.selected_items.remove(pos);
+        } else {
+            self.selected_items.push(current_idx);
+        }
+    }
+
+    /// Check if an item is selected in batch mode
+    pub fn is_item_selected(&self, idx: usize) -> bool {
+        self.selected_items.contains(&idx)
+    }
+
+    /// Toggle filter panel visibility
+    pub fn toggle_filter_panel(&mut self) {
+        self.show_filter_panel = !self.show_filter_panel;
+    }
+
+    /// Toggle active filter
+    pub fn toggle_filter_active(&mut self) {
+        self.filter_active = !self.filter_active;
+        self.needs_refresh = true;
+    }
+
+    /// Toggle inactive filter
+    pub fn toggle_filter_inactive(&mut self) {
+        self.filter_inactive = !self.filter_inactive;
+        self.needs_refresh = true;
+    }
+
+    /// Apply current filters to customer list
+    pub fn apply_filters(&mut self) {
+        if !self.filter_active && !self.filter_inactive {
+            // If both filters are off, show nothing
+            self.customers.clear();
+            return;
+        }
+
+        let original_customers = self.customers.clone();
+        self.customers = original_customers
+            .into_iter()
+            .filter(|c| {
+                let is_active = c.is_active.unwrap_or(false);
+                (is_active && self.filter_active) || (!is_active && self.filter_inactive)
+            })
+            .collect();
     }
 
     pub fn handle_backspace(&mut self) {
@@ -1667,12 +1779,18 @@ impl Clone for App {
             input_mode: self.input_mode.clone(),
             client: self.client.as_ref().map(|c| Client::new(c.get_access_token().clone())),
             token: self.token.clone(),
+            config: self.config.clone(),
             customers: self.customers.clone(),
             selected_customer: self.selected_customer,
             invoices: self.invoices.clone(),
             selected_invoice: self.selected_invoice,
             articles: self.articles.clone(),
             selected_article: self.selected_article,
+            batch_mode: self.batch_mode,
+            selected_items: self.selected_items.clone(),
+            filter_active: self.filter_active,
+            filter_inactive: self.filter_inactive,
+            show_filter_panel: self.show_filter_panel,
             current_page: self.current_page,
             total_pages: self.total_pages,
             page_size: self.page_size,
@@ -1884,5 +2002,62 @@ mod tests {
             ExportFormat::Csv => ExportFormat::Json,
         };
         assert_eq!(new_format, ExportFormat::Json);
+    }
+
+    #[test]
+    fn test_batch_mode() {
+        let mut app = App::new();
+        assert!(!app.batch_mode);
+
+        app.toggle_batch_mode();
+        assert!(app.batch_mode);
+
+        app.toggle_batch_mode();
+        assert!(!app.batch_mode);
+    }
+
+    #[test]
+    fn test_batch_selection() {
+        let mut app = App::new();
+        app.batch_mode = true;
+        app.selected_customer = 0;
+
+        app.toggle_item_selection();
+        assert!(app.is_item_selected(0));
+
+        app.toggle_item_selection();
+        assert!(!app.is_item_selected(0));
+    }
+
+    #[test]
+    fn test_filter_toggles() {
+        let mut app = App::new();
+        assert!(app.filter_active);
+        assert!(app.filter_inactive);
+
+        app.toggle_filter_active();
+        assert!(!app.filter_active);
+
+        app.toggle_filter_inactive();
+        assert!(!app.filter_inactive);
+    }
+
+    #[test]
+    fn test_filter_panel_toggle() {
+        let mut app = App::new();
+        assert!(!app.show_filter_panel);
+
+        app.toggle_filter_panel();
+        assert!(app.show_filter_panel);
+
+        app.toggle_filter_panel();
+        assert!(!app.show_filter_panel);
+    }
+
+    #[test]
+    fn test_config_loading() {
+        let app = App::new();
+        assert!(app.config.pagination.default_page_size > 0);
+        assert!(!app.config.export.default_format.is_empty());
     }
 }
