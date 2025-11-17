@@ -31,6 +31,7 @@ pub fn draw(f: &mut Frame, app: &App) {
         Screen::CustomerDetail(id) => draw_customer_detail(f, chunks[1], app, id),
         Screen::Invoices => draw_invoices(f, chunks[1], app),
         Screen::InvoiceCreate => draw_invoice_form(f, chunks[1], app),
+        Screen::InvoiceEdit(id) => draw_invoice_edit_form(f, chunks[1], app, id),
         Screen::InvoiceDetail(id) => draw_invoice_detail(f, chunks[1], app, id),
         Screen::Articles => draw_articles(f, chunks[1], app),
         Screen::ArticleCreate => draw_article_form(f, chunks[1], app),
@@ -109,7 +110,7 @@ fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
                             _ => "Enter: Submit | ESC: Cancel",
                         }
                     }
-                    Screen::InvoiceCreate => {
+                    Screen::InvoiceCreate | Screen::InvoiceEdit(_) => {
                         match app.input_field {
                             0 => "Customer ID (required) | Enter: Next field | ESC: Cancel",
                             1 => "Description (required) | Enter: Next field | ESC: Cancel",
@@ -128,7 +129,7 @@ fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
                     Screen::Customers => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
                     Screen::CustomerDetail(_) => "e: Edit | x: Delete | ESC: Back | s: Search | d: Dashboard",
                     Screen::Invoices => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
-                    Screen::InvoiceDetail(_) => "x: Delete | ESC: Back | s: Search | d: Dashboard",
+                    Screen::InvoiceDetail(_) => "e: Edit | x: Delete | ESC: Back | s: Search | d: Dashboard",
                     Screen::Articles => "↑↓: Select | ←→: Page | Enter: View | n: New | r: Refresh | s: Search | q: Quit",
                     Screen::ArticleDetail(_) => "e: Edit | x: Delete | ESC: Back | s: Search | d: Dashboard",
                     Screen::Search => "Start typing to search | Enter: Execute | ESC: Back | d: Dashboard",
@@ -585,8 +586,58 @@ fn draw_invoice_detail(f: &mut Frame, area: Rect, app: &App, id: &str) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Invoice Detail (x: delete | ESC: back)"),
+                .title("Invoice Detail (e: edit | x: delete | ESC: back)"),
         )
+        .wrap(Wrap { trim: false });
+
+    f.render_widget(paragraph, area);
+}
+
+fn draw_invoice_edit_form(f: &mut Frame, area: Rect, app: &App, _id: &str) {
+    let fields = vec!["Customer ID", "Description/Remarks", "Amount (SEK)"];
+    let current_field = app.input_field;
+
+    let mut text = vec![
+        Line::from("Edit Invoice"),
+        Line::from(Span::styled(
+            format!("Field {}/{}", current_field + 1, fields.len()),
+            Style::default().fg(Color::Cyan),
+        )),
+        Line::from(""),
+    ];
+
+    for (i, field) in fields.iter().enumerate() {
+        let value = app.form_data.get(i).map(|s| s.as_str()).unwrap_or("");
+        let line = if i == current_field && app.input_mode == InputMode::Editing {
+            Line::from(vec![
+                Span::styled(format!("{}: ", field), Style::default().fg(Color::Yellow)),
+                Span::raw(&app.input),
+                Span::styled("_", Style::default().add_modifier(Modifier::SLOW_BLINK)),
+            ])
+        } else {
+            Line::from(format!("{}: {}", field, value))
+        };
+        text.push(line);
+    }
+
+    if let Some(err) = &app.validation_error {
+        text.push(Line::from(""));
+        text.push(Line::from(Span::styled(
+            format!("⚠ {}", err),
+            Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+        )));
+    }
+
+    if let Some(err) = &app.error_message {
+        text.push(Line::from(""));
+        text.push(Line::from(Span::styled(
+            err.clone(),
+            Style::default().fg(Color::Red),
+        )));
+    }
+
+    let paragraph = Paragraph::new(text)
+        .block(Block::default().borders(Borders::ALL).title("Edit Invoice"))
         .wrap(Wrap { trim: false });
 
     f.render_widget(paragraph, area);

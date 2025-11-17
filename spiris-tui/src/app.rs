@@ -13,6 +13,7 @@ pub enum Screen {
     CustomerDetail(String),
     Invoices,
     InvoiceCreate,
+    InvoiceEdit(String),
     InvoiceDetail(String),
     Articles,
     ArticleCreate,
@@ -402,6 +403,11 @@ impl App {
                             self.screen = Screen::CustomerEdit(id.clone());
                             self.start_edit_form();
                         }
+                        Screen::InvoiceDetail(ref id) => {
+                            self.previous_screen = Some(Screen::InvoiceDetail(id.clone()));
+                            self.screen = Screen::InvoiceEdit(id.clone());
+                            self.start_edit_invoice_form();
+                        }
                         Screen::ArticleDetail(ref id) => {
                             self.previous_screen = Some(Screen::ArticleDetail(id.clone()));
                             self.screen = Screen::ArticleEdit(id.clone());
@@ -523,6 +529,25 @@ impl App {
         }
     }
 
+    fn start_edit_invoice_form(&mut self) {
+        self.input_mode = InputMode::Editing;
+        self.input.clear();
+        self.form_data.clear();
+        self.input_field = 0;
+
+        // Pre-populate form data with existing invoice data
+        if let Screen::InvoiceEdit(ref id) = self.screen {
+            if let Some(invoice) = self.invoices.iter().find(|i| i.id.as_deref() == Some(id)) {
+                self.form_data.push(invoice.customer_id.clone().unwrap_or_default());
+                self.form_data.push(invoice.remarks.clone().unwrap_or_default());
+                // Calculate amount from total
+                let amount = invoice.total_amount.unwrap_or(0.0);
+                self.form_data.push(amount.to_string());
+                self.input_field = 3; // Start at the end to submit immediately or edit
+            }
+        }
+    }
+
     fn validate_email(email: &str) -> bool {
         // Simple email validation
         email.contains('@') && email.contains('.') && email.len() > 3
@@ -584,7 +609,7 @@ impl App {
                     _ => {}
                 }
             }
-            Screen::InvoiceCreate => {
+            Screen::InvoiceCreate | Screen::InvoiceEdit(_) => {
                 match self.input_field {
                     0 => {
                         // Customer ID validation
@@ -619,7 +644,7 @@ impl App {
     fn should_submit_form(&self) -> bool {
         match self.screen {
             Screen::CustomerCreate | Screen::CustomerEdit(_) => self.input_field >= 4, // name, email, phone, website
-            Screen::InvoiceCreate => self.input_field >= 3,   // customer_id, description, amount
+            Screen::InvoiceCreate | Screen::InvoiceEdit(_) => self.input_field >= 3,   // customer_id, description, amount
             Screen::ArticleCreate | Screen::ArticleEdit(_) => self.input_field >= 2,  // name, price
             _ => false,
         }
@@ -743,6 +768,34 @@ impl App {
                             }
                             Err(e) => {
                                 self.set_error(format!("Failed to create invoice: {}", e));
+                            }
+                        }
+                    }
+                }
+                Screen::InvoiceEdit(id) => {
+                    if self.form_data.len() >= 3 {
+                        let amount: f64 = self.form_data[2].parse().unwrap_or(0.0);
+                        let invoice = Invoice {
+                            id: Some(id.clone()),
+                            customer_id: Some(self.form_data[0].clone()),
+                            remarks: Some(self.form_data[1].clone()),
+                            rows: vec![InvoiceRow {
+                                text: Some(self.form_data[1].clone()),
+                                quantity: Some(1.0),
+                                unit_price: Some(amount),
+                                ..Default::default()
+                            }],
+                            ..Default::default()
+                        };
+
+                        match client.invoices().update(id, &invoice).await {
+                            Ok(_) => {
+                                self.set_status("Invoice updated successfully".to_string());
+                                self.screen = Screen::InvoiceDetail(id.clone());
+                                self.load_invoices().await?;
+                            }
+                            Err(e) => {
+                                self.set_error(format!("Failed to update invoice: {}", e));
                             }
                         }
                     }

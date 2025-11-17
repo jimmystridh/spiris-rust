@@ -201,9 +201,17 @@ View complete invoice information:
 - Total including VAT
 - Remarks
 
-Press `Esc` to return to the invoice list.
+Press `e` to edit the invoice, `x` to delete (with confirmation), or `Esc` to return to the invoice list.
 
-#### 7. Customer Editing
+#### 7. Invoice Editing
+
+From the Invoice Detail view, press `e` to edit:
+1. Pre-populated form with existing data
+2. Modify any fields (customer ID, description/remarks, amount)
+3. Press `Enter` to save changes
+4. Returns to Invoice Detail view after successful update
+
+#### 8. Customer Editing
 
 From the Customer Detail view, press `e` to edit:
 1. Pre-populated form with existing data
@@ -211,7 +219,7 @@ From the Customer Detail view, press `e` to edit:
 3. Press `Enter` to save changes
 4. Returns to Customer Detail view after successful update
 
-#### 8. Articles/Products Screen
+#### 9. Articles/Products Screen
 
 - Browse all articles/products with pagination
 - View article name, number, and sales price
@@ -219,7 +227,7 @@ From the Customer Detail view, press `e` to edit:
 - Press `n` to create a new article
 - Press `r` to refresh the articles list
 
-#### 9. Article Creation
+#### 10. Article Creation
 
 Fill in the form fields:
 1. Name (required)
@@ -227,7 +235,7 @@ Fill in the form fields:
 
 Press `Enter` after each field. The article is created automatically after the last field.
 
-#### 10. Article Detail View
+#### 11. Article Detail View
 
 View complete article information:
 - Article ID
@@ -240,7 +248,7 @@ View complete article information:
 
 Press `e` to edit the article, `x` to delete (with confirmation), or `Esc` to return to the articles list.
 
-#### 11. Article Editing
+#### 12. Article Editing
 
 From the Article Detail view, press `e` to edit:
 1. Pre-populated form with existing data
@@ -248,7 +256,7 @@ From the Article Detail view, press `e` to edit:
 3. Press `Enter` to save changes
 4. Returns to Article Detail view after successful update
 
-#### 12. Invoice Creation
+#### 13. Invoice Creation
 
 Fill in the form fields:
 1. Customer ID (required)
@@ -257,7 +265,7 @@ Fill in the form fields:
 
 Press `Enter` after each field. A simple invoice with one line item is created automatically.
 
-#### 13. Search Screen
+#### 14. Search Screen
 
 Real-time search across customers and invoices:
 - Start typing to enter search mode (query updates live)
@@ -267,7 +275,7 @@ Real-time search across customers and invoices:
 - Search is performed on names, emails, customer IDs, and remarks
 - Client-side filtering for fast results
 
-#### 14. Export Screen
+#### 15. Export Screen
 
 Export all loaded data to JSON or CSV files:
 - Use `↑`/`↓` to select format or export option
@@ -281,7 +289,7 @@ Export all loaded data to JSON or CSV files:
 - Files are saved in the current directory
 - Status message shows export results
 
-#### 15. Help Screen
+#### 16. Help Screen
 
 Press `h` or `?` from any screen to view the help page with all keyboard shortcuts and available screens.
 
@@ -378,7 +386,6 @@ If data doesn't appear:
 ## Known Limitations
 
 - **Advanced Filtering**: Basic search implemented, advanced filters coming soon
-- **Invoice Editing**: Invoices cannot be edited after creation (can only delete)
 - **PDF Export**: Only JSON and CSV export currently supported (PDF coming soon)
 - **Total Page Count**: Page count estimation is approximate (API doesn't return total count)
 
@@ -403,8 +410,8 @@ If data doesn't appear:
 - [x] ✅ Color-coded UI states (success, error, warning, loading)
 - [x] ✅ Article editing (complete CRUD for articles)
 - [x] ✅ CSV export format (in addition to JSON)
+- [x] ✅ Invoice editing (complete CRUD for all entities!)
 - [ ] 🚧 Advanced filtering with multiple criteria
-- [ ] 🚧 Invoice editing
 - [ ] 🚧 PDF export format
 - [ ] 🚧 Sort options for lists (by name, date, amount, etc.)
 - [ ] 🚧 Multi-account support
