@@ -2,7 +2,7 @@
 name = "spiris_bokforing"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.83"
 authors = ["Jimmy Stridh <jimmy@stridh.dev>"]
 description = "Rust client for the Spiris Bokföring och Fakturering API (formerly Visma eAccounting)"
 license = "MIT"
