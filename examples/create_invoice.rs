@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             InvoiceRow {
                 text: Some("Development services - Module B".to_string()),
                 unit_price: Some(1500.0),
-                quantity: Some(20.0), // 20 hours
+                quantity: Some(20.0),            // 20 hours
                 discount_percentage: Some(10.0), // 10% discount
                 ..Default::default()
             },

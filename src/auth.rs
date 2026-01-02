@@ -206,11 +206,7 @@ impl OAuth2Handler {
     ///
     /// This should be called after the user approves access and is redirected
     /// back to your application with an authorization code.
-    pub async fn exchange_code(
-        &self,
-        code: String,
-        _pkce_verifier: String,
-    ) -> Result<AccessToken> {
+    pub async fn exchange_code(&self, code: String, _pkce_verifier: String) -> Result<AccessToken> {
         let token_result = self
             .client
             .exchange_code(AuthorizationCode::new(code))
@@ -226,9 +222,7 @@ impl OAuth2Handler {
         Ok(AccessToken::new(
             token_result.access_token().secret().to_string(),
             expires_in,
-            token_result
-                .refresh_token()
-                .map(|t| t.secret().to_string()),
+            token_result.refresh_token().map(|t| t.secret().to_string()),
         ))
     }
 
@@ -241,7 +235,7 @@ impl OAuth2Handler {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::auth::{OAuth2Config, OAuth2Handler};
+    /// # use spiris_bokforing::auth::{OAuth2Config, OAuth2Handler};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let config = OAuth2Config::new("id".to_string(), "secret".to_string(), "uri".to_string());
     /// let handler = OAuth2Handler::new(config)?;
@@ -268,9 +262,7 @@ impl OAuth2Handler {
         Ok(AccessToken::new(
             token_result.access_token().secret().to_string(),
             expires_in,
-            token_result
-                .refresh_token()
-                .map(|t| t.secret().to_string()),
+            token_result.refresh_token().map(|t| t.secret().to_string()),
         ))
     }
 }

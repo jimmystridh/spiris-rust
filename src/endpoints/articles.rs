@@ -9,7 +9,7 @@ use crate::types::{Article, PaginatedResponse, PaginationParams, QueryParams};
 /// # Example
 ///
 /// ```no_run
-/// use visma_eaccounting::{Client, AccessToken};
+/// use spiris_bokforing::{Client, AccessToken};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,7 +43,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, PaginationParams};
+    /// # use spiris_bokforing::{Client, PaginationParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = PaginationParams::new().page(0).pagesize(100);
     /// let articles = client.articles().list(Some(params)).await?;
@@ -70,10 +70,10 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let article = client.articles().get("article-id-123").await?;
-    /// println!("Article: {}", article.name);
+    /// println!("Article: {:?}", article.name);
     /// # Ok(())
     /// # }
     /// ```
@@ -91,10 +91,10 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, Article};
+    /// # use spiris_bokforing::{Client, Article};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let new_article = Article {
-    ///     name: "Consulting Hour".to_string(),
+    ///     name: Some("Consulting Hour".to_string()),
     ///     unit: Some("hours".to_string()),
     ///     sales_price: Some(1000.0),
     ///     ..Default::default()
@@ -117,7 +117,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let mut article = client.articles().get("article-id-123").await?;
     /// article.sales_price = Some(1200.0);
@@ -139,7 +139,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// client.articles().delete("article-id-123").await?;
     /// # Ok(())
@@ -160,7 +160,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, QueryParams};
+    /// # use spiris_bokforing::{Client, QueryParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let query = QueryParams::new()
     ///     .filter("IsActive eq true")

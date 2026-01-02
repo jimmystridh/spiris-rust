@@ -228,11 +228,7 @@ impl Client {
     }
 
     /// Make a POST request to create a resource.
-    pub async fn post<T: DeserializeOwned, B: Serialize>(
-        &self,
-        path: &str,
-        body: &B,
-    ) -> Result<T> {
+    pub async fn post<T: DeserializeOwned, B: Serialize>(&self, path: &str, body: &B) -> Result<T> {
         let url = self.build_url(path)?;
         let request = self
             .build_request(Method::POST, url)?
@@ -244,11 +240,7 @@ impl Client {
     }
 
     /// Make a PUT request to update a resource.
-    pub async fn put<T: DeserializeOwned, B: Serialize>(
-        &self,
-        path: &str,
-        body: &B,
-    ) -> Result<T> {
+    pub async fn put<T: DeserializeOwned, B: Serialize>(&self, path: &str, body: &B) -> Result<T> {
         let url = self.build_url(path)?;
         let request = self
             .build_request(Method::PUT, url)?
@@ -265,6 +257,15 @@ impl Client {
         let request = self.build_request(Method::DELETE, url)?;
         self.execute_request(request).await?;
         Ok(())
+    }
+
+    /// Make a GET request that returns raw bytes (for binary data like PDFs).
+    pub async fn get_bytes(&self, path: &str) -> Result<Vec<u8>> {
+        let url = self.build_url(path)?;
+        let request = self.build_request(Method::GET, url)?;
+        let response = self.execute_request(request).await?;
+        let bytes = response.bytes().await?;
+        Ok(bytes.to_vec())
     }
 }
 

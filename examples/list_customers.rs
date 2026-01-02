@@ -26,7 +26,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let response = client.customers().list(Some(params)).await?;
 
     println!("\nFound {} total customers", response.meta.total_count);
-    println!("Page {} of {}", response.meta.current_page + 1, response.meta.total_pages);
+    println!(
+        "Page {} of {}",
+        response.meta.current_page + 1,
+        response.meta.total_pages
+    );
     println!("\nCustomers:");
     println!("{:-<80}", "");
 

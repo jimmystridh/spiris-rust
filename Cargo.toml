@@ -2,12 +2,26 @@
 name = "spiris_bokforing"
 version = "0.1.0"
 edition = "2021"
-authors = ["Spiris Bokföring och Fakturering API Client Contributors"]
+rust-version = "1.70"
+authors = ["Jimmy Stridh <jimmy@stridh.dev>"]
 description = "Rust client for the Spiris Bokföring och Fakturering API (formerly Visma eAccounting)"
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/jimmystridh/claude_jungle_bamboo"
-keywords = ["spiris", "bokforing", "fakturering", "api", "accounting"]
-categories = ["api-bindings"]
+license = "MIT"
+repository = "https://github.com/jimmystridh/spiris-client-rs"
+homepage = "https://github.com/jimmystridh/spiris-client-rs"
+documentation = "https://docs.rs/spiris_bokforing"
+readme = "README.md"
+keywords = ["spiris", "visma", "eaccounting", "api", "accounting"]
+categories = ["api-bindings", "asynchronous"]
+exclude = [
+    ".github/*",
+    "spiris-tui/*",
+    "CLAUDE.md",
+    "PLAN_100_COVERAGE.md",
+]
+
+[features]
+default = []
+tracing = ["dep:tracing"]
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
@@ -23,3 +37,7 @@ tracing = { version = "0.1", optional = true }
 [dev-dependencies]
 tokio-test = "0.4"
 mockito = "1.2"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

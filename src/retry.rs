@@ -58,17 +58,13 @@ impl RetryConfig {
         self.max_interval = interval;
         self
     }
-
 }
 
 /// Retry a request operation with exponential backoff.
 ///
 /// This function will retry the operation if it fails with a retryable error
 /// (network errors, rate limits, server errors).
-pub async fn retry_request<T, F, Fut>(
-    config: &RetryConfig,
-    mut operation: F,
-) -> Result<T>
+pub async fn retry_request<T, F, Fut>(config: &RetryConfig, mut operation: F) -> Result<T>
 where
     F: FnMut() -> Fut,
     Fut: std::future::Future<Output = Result<T>>,
@@ -91,10 +87,9 @@ where
                 sleep(current_interval).await;
 
                 // Calculate next backoff interval
-                current_interval = Duration::from_secs_f64(
-                    current_interval.as_secs_f64() * config.multiplier,
-                )
-                .min(config.max_interval);
+                current_interval =
+                    Duration::from_secs_f64(current_interval.as_secs_f64() * config.multiplier)
+                        .min(config.max_interval);
             }
         }
     }
@@ -103,7 +98,7 @@ where
 /// Determine if an error is retryable.
 pub fn is_retryable_error(error: &Error) -> bool {
     match error {
-        Error::Http(_) => true, // Network errors are retryable
+        Error::Http(_) => true,              // Network errors are retryable
         Error::RateLimitExceeded(_) => true, // Rate limits are retryable
         Error::ApiError { status_code, .. } => {
             // Retry on server errors (5xx) but not client errors (4xx)
@@ -137,7 +132,9 @@ mod tests {
 
     #[test]
     fn test_is_retryable_error() {
-        assert!(is_retryable_error(&Error::RateLimitExceeded("test".to_string())));
+        assert!(is_retryable_error(&Error::RateLimitExceeded(
+            "test".to_string()
+        )));
         assert!(is_retryable_error(&Error::ApiError {
             status_code: 500,
             message: "Server error".to_string()

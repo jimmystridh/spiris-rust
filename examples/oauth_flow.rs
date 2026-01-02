@@ -13,8 +13,8 @@ use spiris_bokforing::auth::{OAuth2Config, OAuth2Handler};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get OAuth2 credentials from environment variables
-    let client_id =
-        std::env::var("SPIRIS_CLIENT_ID").expect("Please set SPIRIS_CLIENT_ID environment variable");
+    let client_id = std::env::var("SPIRIS_CLIENT_ID")
+        .expect("Please set SPIRIS_CLIENT_ID environment variable");
     let client_secret = std::env::var("SPIRIS_CLIENT_SECRET")
         .expect("Please set SPIRIS_CLIENT_SECRET environment variable");
     let redirect_uri = std::env::var("SPIRIS_REDIRECT_URI")

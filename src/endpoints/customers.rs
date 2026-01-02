@@ -9,7 +9,7 @@ use crate::types::{Customer, PaginatedResponse, PaginationParams, QueryParams};
 /// # Example
 ///
 /// ```no_run
-/// use visma_eaccounting::{Client, AccessToken};
+/// use spiris_bokforing::{Client, AccessToken};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,7 +43,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, AccessToken, PaginationParams};
+    /// # use spiris_bokforing::{Client, AccessToken, PaginationParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = PaginationParams::new().page(0).pagesize(100);
     /// let customers = client.customers().list(Some(params)).await?;
@@ -70,10 +70,10 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let customer = client.customers().get("customer-id-123").await?;
-    /// println!("Customer: {}", customer.name);
+    /// println!("Customer: {:?}", customer.name);
     /// # Ok(())
     /// # }
     /// ```
@@ -91,10 +91,10 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, Customer};
+    /// # use spiris_bokforing::{Client, Customer};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let new_customer = Customer {
-    ///     name: "Acme Corporation".to_string(),
+    ///     name: Some("Acme Corporation".to_string()),
     ///     email: Some("contact@acme.com".to_string()),
     ///     ..Default::default()
     /// };
@@ -116,7 +116,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let mut customer = client.customers().get("customer-id-123").await?;
     /// customer.email = Some("newemail@acme.com".to_string());
@@ -138,7 +138,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// client.customers().delete("customer-id-123").await?;
     /// # Ok(())
@@ -159,7 +159,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, QueryParams};
+    /// # use spiris_bokforing::{Client, QueryParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let query = QueryParams::new()
     ///     .filter("IsActive eq true")

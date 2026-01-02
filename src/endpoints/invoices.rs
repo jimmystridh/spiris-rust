@@ -2,14 +2,14 @@
 
 use crate::client::Client;
 use crate::error::Result;
-use crate::types::{Invoice, PaginatedResponse, PaginationParams, QueryParams};
+use crate::types::{Invoice, InvoicePayment, PaginatedResponse, PaginationParams, QueryParams};
 
 /// Invoices endpoint for managing customer invoices.
 ///
 /// # Example
 ///
 /// ```no_run
-/// use visma_eaccounting::{Client, AccessToken};
+/// use spiris_bokforing::{Client, AccessToken};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,7 +43,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, PaginationParams};
+    /// # use spiris_bokforing::{Client, PaginationParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = PaginationParams::new().page(0).pagesize(50);
     /// let invoices = client.invoices().list(Some(params)).await?;
@@ -72,7 +72,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let invoice = client.invoices().get("invoice-id-123").await?;
     /// println!("Invoice #{:?}", invoice.invoice_number);
@@ -93,17 +93,17 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, Invoice, InvoiceRow};
+    /// # use spiris_bokforing::{Client, Invoice, InvoiceRow};
     /// # use chrono::Utc;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let new_invoice = Invoice {
-    ///     customer_id: "customer-id-123".to_string(),
-    ///     invoice_date: Utc::now(),
+    ///     customer_id: Some("customer-id-123".to_string()),
+    ///     invoice_date: Some(Utc::now()),
     ///     rows: vec![
     ///         InvoiceRow {
-    ///             text: "Consulting services".to_string(),
-    ///             unit_price: 1000.0,
-    ///             quantity: 10.0,
+    ///             text: Some("Consulting services".to_string()),
+    ///             unit_price: Some(1000.0),
+    ///             quantity: Some(10.0),
     ///             ..Default::default()
     ///         }
     ///     ],
@@ -127,7 +127,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let mut invoice = client.invoices().get("invoice-id-123").await?;
     /// invoice.remarks = Some("Updated remarks".to_string());
@@ -149,7 +149,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::Client;
+    /// # use spiris_bokforing::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// client.invoices().delete("invoice-id-123").await?;
     /// # Ok(())
@@ -170,7 +170,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use visma_eaccounting::{Client, QueryParams};
+    /// # use spiris_bokforing::{Client, QueryParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let query = QueryParams::new()
     ///     .filter("IsSent eq true");
@@ -195,5 +195,42 @@ impl<'a> InvoicesEndpoint<'a> {
         self.client
             .get_with_params("/customerinvoices", &params)
             .await
+    }
+
+    /// Register a payment for an invoice.
+    ///
+    /// # Arguments
+    ///
+    /// * `invoice_id` - The invoice ID
+    /// * `payment` - The payment details
+    pub async fn register_payment(&self, invoice_id: &str, payment: &InvoicePayment) -> Result<()> {
+        let path = format!("/customerinvoices/{}/payments", invoice_id);
+        self.client.post::<(), _>(&path, payment).await?;
+        Ok(())
+    }
+
+    /// Get the PDF for an invoice.
+    ///
+    /// # Arguments
+    ///
+    /// * `invoice_id` - The invoice ID
+    ///
+    /// # Returns
+    ///
+    /// The PDF as raw bytes.
+    pub async fn get_pdf(&self, invoice_id: &str) -> Result<Vec<u8>> {
+        let path = format!("/customerinvoices/{}/pdf", invoice_id);
+        self.client.get_bytes(&path).await
+    }
+
+    /// Send an invoice via e-invoice.
+    ///
+    /// # Arguments
+    ///
+    /// * `invoice_id` - The invoice ID to send electronically
+    pub async fn send_einvoice(&self, invoice_id: &str) -> Result<()> {
+        let path = format!("/customerinvoices/{}/einvoice", invoice_id);
+        self.client.post::<(), _>(&path, &()).await?;
+        Ok(())
     }
 }

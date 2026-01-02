@@ -2,7 +2,9 @@
 
 [![Crates.io](https://img.shields.io/crates/v/spiris_bokforing.svg)](https://crates.io/crates/spiris_bokforing)
 [![Documentation](https://docs.rs/spiris_bokforing/badge.svg)](https://docs.rs/spiris_bokforing)
-[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
+[![CI](https://github.com/jimmystridh/spiris-bokforing-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/jimmystridh/spiris-bokforing-rs/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT)
+[![MSRV](https://img.shields.io/badge/MSRV-1.70-blue.svg)](https://blog.rust-lang.org/2023/06/01/Rust-1.70.0.html)
 
 A comprehensive Rust client library for the [Spiris Bokföring och Fakturering API](https://developer.visma.com/api/eaccounting) (formerly Visma eAccounting).
 
@@ -187,15 +189,202 @@ let article = Article {
 let created_article = client.articles().create(&article).await?;
 ```
 
-## API Coverage
+## API Feature Matrix
 
-The library currently supports the following endpoints:
+### Endpoints Implemented
 
-- **Customers**: List, Get, Create, Update, Delete, Search
-- **Invoices**: List, Get, Create, Update, Delete, Search
-- **Articles**: List, Get, Create, Update, Delete, Search
+| Endpoint | API Path | List | Get | Create | Update | Delete | Search | Extra |
+|----------|----------|:----:|:---:|:------:|:------:|:------:|:------:|-------|
+| **Customers** | | | | | | | | |
+| Customers | `/customers` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| Customer Invoice Drafts | `/customerinvoicedrafts` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | convert |
+| Customer Invoices | `/customerinvoices` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | payments, pdf, einvoice |
+| Customer Ledger Items | `/customerledgeritems` | ✓ | ✓ | ✓ | | | ✓ | |
+| Customer Labels | `/customerlabels` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| **Suppliers** | | | | | | | | |
+| Suppliers | `/suppliers` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| Supplier Invoices | `/supplierinvoices` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | payments |
+| Supplier Invoice Drafts | `/supplierinvoicedrafts` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | convert |
+| Supplier Ledger Items | `/supplierledgeritems` | ✓ | ✓ | ✓ | | | ✓ | |
+| Supplier Labels | `/supplierlabels` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| **Articles** | | | | | | | | |
+| Articles | `/articles` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| Article Labels | `/articlelabels` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| Article Account Codings | `/articleaccountcodings` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| Units | `/units` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| **Accounting** | | | | | | | | |
+| Accounts | `/accounts` | ✓ | ✓ | ✓ | ✓ | | | balances, types, standard |
+| Fiscal Years | `/fiscalyears` | ✓ | ✓ | ✓ | | | | opening balances |
+| VAT Codes | `/vatcodes` | ✓ | ✓ | | | | | |
+| Vouchers | `/vouchers` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| **Banking** | | | | | | | | |
+| Bank Accounts | `/bankaccounts` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| Banks | `/banks` | ✓ | | | | | | foreign payment codes |
+| **Projects & Cost Centers** | | | | | | | | |
+| Projects | `/projects` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| Cost Centers | `/costcenters` | ✓ | ✓ | ✓ | ✓ | ✓ | | items |
+| Allocation Periods | `/allocationperiods` | ✓ | ✓ | | | | | |
+| **Orders & Quotations** | | | | | | | | |
+| Orders | `/orders` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| Quotations | `/quotations` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| **Delivery & Payment** | | | | | | | | |
+| Delivery Methods | `/deliverymethods` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| Delivery Terms | `/deliveryterms` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| Terms of Payment | `/termsofpayment` | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| **Documents** | | | | | | | | |
+| Attachments | `/attachments` | ✓ | ✓ | ✓ | | ✓ | | upload binary |
+| Documents | `/documents` | ✓ | ✓ | | | | | |
+| **Settings & Reference** | | | | | | | | |
+| Company Settings | `/companysettings` | | ✓ | | ✓ | | | |
+| Countries | `/countries` | ✓ | | | | | | |
+| Currencies | `/currencies` | ✓ | | | | | | |
+| Users | `/users` | ✓ | ✓ | | | | | |
+| **Messaging & Approvals** | | | | | | | | |
+| Message Threads | `/messagethreads` | | ✓ | | ✓ | | | add message |
+| Approvals | `/approval/*` | | | | | | | VAT report, supplier invoice |
 
-More endpoints will be added in future releases.
+**Total: 35+ endpoints with full CRUD operations where applicable**
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | `u32` | Page number (0-indexed) |
+| `pagesize` | `u32` | Items per page (default: 50, max: 500) |
+| `filter` | `String` | OData filter expression (e.g., `"IsActive eq true"`) |
+| `select` | `String` | Fields to return (e.g., `"Id,Name,Email"`) |
+
+### Data Types
+
+**Core Entities:**
+| Type | Fields |
+|------|--------|
+| `Customer` | id, customer_number, corporate_identity_number, name, email, phone, mobile_phone, website, invoice_address, delivery_address, payment_terms_in_days, is_active, is_private_person, created_utc, modified_utc |
+| `Supplier` | id, supplier_number, corporate_identity_number, name, email, phone, mobile_phone, website, address, bank_account_number, bank_giro_number, plus_giro_number, is_active, created_utc, modified_utc |
+| `Article` | id, article_number, name, unit, sales_price, purchase_price, is_active, vat_rate_id, created_utc, modified_utc |
+
+**Invoices:**
+| Type | Fields |
+|------|--------|
+| `Invoice` | id, invoice_number, customer_id, invoice_date, due_date, delivery_date, currency_code, rows, total_amount, total_vat_amount, total_amount_including_vat, is_sent, remarks, created_utc, modified_utc |
+| `CustomerInvoiceDraft` | id, customer_id, invoice_date, due_date, delivery_date, currency_code, rows, total_amount, total_vat_amount, total_amount_including_vat, remarks, your_reference, our_reference, created_utc, modified_utc |
+| `SupplierInvoice` | id, supplier_id, invoice_number, invoice_date, due_date, currency_code, currency_rate, rows, total_amount, total_vat_amount, total_amount_including_vat, is_paid, payment_date, ocr_number, created_utc, modified_utc |
+| `InvoiceRow` | id, article_id, text, unit_price, quantity, discount_percentage, vat_rate_id, total_amount |
+
+**Accounting:**
+| Type | Fields |
+|------|--------|
+| `Account` | account_number, name, account_type, vat_code_id, fiscal_year_id, is_active, opening_balance |
+| `Voucher` | id, voucher_number, voucher_date, voucher_type, voucher_text, rows, created_utc, modified_utc |
+| `VoucherRow` | account_number, debit_amount, credit_amount, transaction_text, cost_center_item_id, project_id |
+| `FiscalYear` | id, start_date, end_date, is_locked, bookkeeping_method |
+| `VatCode` | id, code, description, vat_rate |
+
+**Banking & Payments:**
+| Type | Fields |
+|------|--------|
+| `BankAccount` | id, name, account_number, iban, bic, ledger_account_number, currency_code, is_default, is_active |
+| `InvoicePayment` | amount, payment_date, bank_account_id, payment_reference_number, currency_rate |
+| `CustomerLedgerItem` | id, customer_id, customer_invoice_id, currency_amount, currency_code, amount, payment_date, payment_reference_number, voucher_id, voucher_number, created_utc |
+
+**Projects & Cost Centers:**
+| Type | Fields |
+|------|--------|
+| `Project` | id, number, name, start_date, end_date, customer_id, notes, is_completed, is_active, created_utc, modified_utc |
+| `CostCenter` | id, number, name, is_active |
+| `CostCenterItem` | id, cost_center_id, name, short_name, is_active |
+| `AllocationPeriod` | id, start_date, end_date, name, is_locked |
+
+**Orders & Quotations:**
+| Type | Fields |
+|------|--------|
+| `Order` | id, order_number, customer_id, order_date, delivery_date, currency_code, rows, total_amount, is_invoiced, created_utc, modified_utc |
+| `Quotation` | id, quotation_number, customer_id, quotation_date, valid_until_date, currency_code, rows, total_amount, is_accepted, created_utc, modified_utc |
+
+**Delivery & Payment:**
+| Type | Fields |
+|------|--------|
+| `DeliveryMethod` | id, name, code, is_active |
+| `DeliveryTerm` | id, name, code, is_active |
+| `TermsOfPayment` | id, name, code, number_of_days, is_active |
+
+**Documents:**
+| Type | Fields |
+|------|--------|
+| `Attachment` | id, name, content_type, size, temporary_url, created_utc |
+| `AttachmentLink` | entity_type, entity_id, attachment_id |
+| `Document` | id, document_number, document_type, document_date, voucher_id, attachment_id |
+
+**Settings & Reference:**
+| Type | Fields |
+|------|--------|
+| `CompanySettings` | name, corporate_identity_number, address, phone, email, website, currency_code, country_code, fiscal_year_start_month |
+| `Country` | code, name |
+| `Currency` | code, name |
+| `User` | id, email, first_name, last_name, is_active, role |
+| `Bank` | id, name, bic, country_code |
+| `ForeignPaymentCode` | id, code, name |
+
+**Messaging & Approvals:**
+| Type | Fields |
+|------|--------|
+| `MessageThread` | id, subject, entity_type, entity_id, is_read, messages, created_utc, modified_utc |
+| `Message` | id, body, is_from_user, created_utc |
+| `ApprovalAction` | is_approved, comment |
+
+**Other:**
+| Type | Fields |
+|------|--------|
+| `Address` | address1, address2, postal_code, city, country_code |
+| `CustomerLabel` | id, name, description |
+| `SupplierLabel` | id, name, description |
+| `ArticleLabel` | id, name, description |
+| `ArticleAccountCoding` | id, article_id, account_coding_type, sales_account_number, purchase_account_number |
+| `Unit` | id, code, name, is_active |
+
+### Authentication Features
+
+| Feature | Supported |
+|---------|:---------:|
+| OAuth2 Authorization Code + PKCE | ✓ |
+| Token refresh | ✓ |
+| Token expiration check (5-min buffer) | ✓ |
+| Scopes: `ea:api`, `ea:sales`, `offline_access` | ✓ |
+
+### Client Features
+
+| Feature | Supported | Configuration |
+|---------|:---------:|---------------|
+| Automatic retry with exponential backoff | ✓ | `RetryConfig` |
+| Rate limit handling (429) | ✓ | Auto-retry |
+| Server error retry (5xx) | ✓ | Auto-retry |
+| Configurable timeout | ✓ | `ClientConfig.timeout_seconds` |
+| Custom base URL | ✓ | `ClientConfig.base_url` |
+| Tracing/logging | ✓ | `ClientConfig.enable_tracing` |
+| Thread-safe token updates | ✓ | `Arc<RwLock<AccessToken>>` |
+
+### Error Types
+
+| Error | Description |
+|-------|-------------|
+| `TokenExpired` | Access token expired (not retried) |
+| `RateLimitExceeded` | 429 response (retried) |
+| `NotFound` | 404 response |
+| `InvalidRequest` | 400 response |
+| `AuthError` | 401/403 response |
+| `ApiError` | Other HTTP errors |
+| `OAuth2Error` | OAuth2 flow failures |
+| `Http` | Network/connection errors (retried) |
+
+### RetryConfig Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `max_retries` | 3 | Maximum retry attempts |
+| `initial_interval` | 500ms | Initial backoff duration |
+| `max_interval` | 30s | Maximum backoff duration |
+| `multiplier` | 2.0 | Exponential backoff multiplier |
+| `max_elapsed_time` | 120s | Total time before giving up |
 
 ## Error Handling
 
@@ -609,8 +798,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ```bash
 # Clone the repository
-git clone https://github.com/jimmystridh/claude_jungle_bamboo
-cd claude_jungle_bamboo
+git clone https://github.com/jimmystridh/spiris-bokforing-rs
+cd spiris-bokforing-rs
 
 # Run tests
 cargo test
@@ -640,12 +829,7 @@ When reporting issues, please include:
 
 ## License
 
-This project is licensed under either of:
-
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
+This project is licensed under the MIT license. See [LICENSE-MIT](LICENSE-MIT) for details.
 
 ## Resources
 

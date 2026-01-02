@@ -151,8 +151,15 @@ pub use client::{Client, ClientConfig};
 pub use error::{Error, Result};
 pub use retry::RetryConfig;
 pub use types::{
-    Address, Article, Customer, Invoice, InvoiceRow, PaginatedResponse, PaginationParams,
-    QueryParams, ResponseMetadata,
+    Account, AccountBalance, AccountType, Address, AllocationPeriod, Article, ArticleAccountCoding,
+    ArticleLabel, Attachment, AttachmentLink, Bank, BankAccount, CompanySettings,
+    ConvertDraftOptions, CostCenter, CostCenterItem, Country, Currency, Customer,
+    CustomerInvoiceDraft, CustomerInvoiceDraftRow, CustomerLabel, CustomerLedgerItem,
+    DeliveryMethod, DeliveryTerm, Document, FiscalYear, ForeignPaymentCode, Invoice,
+    InvoicePayment, InvoiceRow, Message, MessageThread, Order, OrderRow, PaginatedResponse,
+    PaginationParams, Project, QueryParams, Quotation, QuotationRow, ResponseMetadata, Supplier,
+    SupplierInvoice, SupplierInvoiceDraft, SupplierInvoiceRow, SupplierLabel, SupplierLedgerItem,
+    TermsOfPayment, Unit, User, VatCode, Voucher, VoucherRow,
 };
 
 // Add endpoint accessors to the Client
@@ -192,20 +199,173 @@ impl Client {
     }
 
     /// Access the articles endpoint.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use spiris_bokforing::{Client, AccessToken};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let token = AccessToken::new("token".to_string(), 3600, None);
-    /// let client = Client::new(token);
-    /// let articles = client.articles().list(None).await?;
-    /// # Ok(())
-    /// # }
-    /// ```
     pub fn articles(&self) -> endpoints::ArticlesEndpoint<'_> {
         endpoints::ArticlesEndpoint::new(self)
+    }
+
+    /// Access the customer invoice drafts endpoint.
+    pub fn customer_invoice_drafts(&self) -> endpoints::CustomerInvoiceDraftsEndpoint<'_> {
+        endpoints::CustomerInvoiceDraftsEndpoint::new(self)
+    }
+
+    /// Access the customer ledger items endpoint.
+    pub fn customer_ledger_items(&self) -> endpoints::CustomerLedgerItemsEndpoint<'_> {
+        endpoints::CustomerLedgerItemsEndpoint::new(self)
+    }
+
+    /// Access the customer labels endpoint.
+    pub fn customer_labels(&self) -> endpoints::CustomerLabelsEndpoint<'_> {
+        endpoints::CustomerLabelsEndpoint::new(self)
+    }
+
+    /// Access the suppliers endpoint.
+    pub fn suppliers(&self) -> endpoints::SuppliersEndpoint<'_> {
+        endpoints::SuppliersEndpoint::new(self)
+    }
+
+    /// Access the supplier invoices endpoint.
+    pub fn supplier_invoices(&self) -> endpoints::SupplierInvoicesEndpoint<'_> {
+        endpoints::SupplierInvoicesEndpoint::new(self)
+    }
+
+    /// Access the accounts endpoint.
+    pub fn accounts(&self) -> endpoints::AccountsEndpoint<'_> {
+        endpoints::AccountsEndpoint::new(self)
+    }
+
+    /// Access the fiscal years endpoint.
+    pub fn fiscal_years(&self) -> endpoints::FiscalYearsEndpoint<'_> {
+        endpoints::FiscalYearsEndpoint::new(self)
+    }
+
+    /// Access the VAT codes endpoint.
+    pub fn vat_codes(&self) -> endpoints::VatCodesEndpoint<'_> {
+        endpoints::VatCodesEndpoint::new(self)
+    }
+
+    /// Access the vouchers endpoint.
+    pub fn vouchers(&self) -> endpoints::VouchersEndpoint<'_> {
+        endpoints::VouchersEndpoint::new(self)
+    }
+
+    /// Access the bank accounts endpoint.
+    pub fn bank_accounts(&self) -> endpoints::BankAccountsEndpoint<'_> {
+        endpoints::BankAccountsEndpoint::new(self)
+    }
+
+    /// Access the projects endpoint.
+    pub fn projects(&self) -> endpoints::ProjectsEndpoint<'_> {
+        endpoints::ProjectsEndpoint::new(self)
+    }
+
+    /// Access the cost centers endpoint.
+    pub fn cost_centers(&self) -> endpoints::CostCentersEndpoint<'_> {
+        endpoints::CostCentersEndpoint::new(self)
+    }
+
+    /// Access the allocation periods endpoint.
+    pub fn allocation_periods(&self) -> endpoints::AllocationPeriodsEndpoint<'_> {
+        endpoints::AllocationPeriodsEndpoint::new(self)
+    }
+
+    /// Access the orders endpoint.
+    pub fn orders(&self) -> endpoints::OrdersEndpoint<'_> {
+        endpoints::OrdersEndpoint::new(self)
+    }
+
+    /// Access the quotations endpoint.
+    pub fn quotations(&self) -> endpoints::QuotationsEndpoint<'_> {
+        endpoints::QuotationsEndpoint::new(self)
+    }
+
+    /// Access the supplier invoice drafts endpoint.
+    pub fn supplier_invoice_drafts(&self) -> endpoints::SupplierInvoiceDraftsEndpoint<'_> {
+        endpoints::SupplierInvoiceDraftsEndpoint::new(self)
+    }
+
+    /// Access the supplier ledger items endpoint.
+    pub fn supplier_ledger_items(&self) -> endpoints::SupplierLedgerItemsEndpoint<'_> {
+        endpoints::SupplierLedgerItemsEndpoint::new(self)
+    }
+
+    /// Access the supplier labels endpoint.
+    pub fn supplier_labels(&self) -> endpoints::SupplierLabelsEndpoint<'_> {
+        endpoints::SupplierLabelsEndpoint::new(self)
+    }
+
+    /// Access the article labels endpoint.
+    pub fn article_labels(&self) -> endpoints::ArticleLabelsEndpoint<'_> {
+        endpoints::ArticleLabelsEndpoint::new(self)
+    }
+
+    /// Access the article account codings endpoint.
+    pub fn article_account_codings(&self) -> endpoints::ArticleAccountCodingsEndpoint<'_> {
+        endpoints::ArticleAccountCodingsEndpoint::new(self)
+    }
+
+    /// Access the units endpoint.
+    pub fn units(&self) -> endpoints::UnitsEndpoint<'_> {
+        endpoints::UnitsEndpoint::new(self)
+    }
+
+    /// Access the delivery methods endpoint.
+    pub fn delivery_methods(&self) -> endpoints::DeliveryMethodsEndpoint<'_> {
+        endpoints::DeliveryMethodsEndpoint::new(self)
+    }
+
+    /// Access the delivery terms endpoint.
+    pub fn delivery_terms(&self) -> endpoints::DeliveryTermsEndpoint<'_> {
+        endpoints::DeliveryTermsEndpoint::new(self)
+    }
+
+    /// Access the terms of payment endpoint.
+    pub fn terms_of_payment(&self) -> endpoints::TermsOfPaymentEndpoint<'_> {
+        endpoints::TermsOfPaymentEndpoint::new(self)
+    }
+
+    /// Access the attachments endpoint.
+    pub fn attachments(&self) -> endpoints::AttachmentsEndpoint<'_> {
+        endpoints::AttachmentsEndpoint::new(self)
+    }
+
+    /// Access the documents endpoint.
+    pub fn documents(&self) -> endpoints::DocumentsEndpoint<'_> {
+        endpoints::DocumentsEndpoint::new(self)
+    }
+
+    /// Access the company settings endpoint.
+    pub fn company_settings(&self) -> endpoints::CompanySettingsEndpoint<'_> {
+        endpoints::CompanySettingsEndpoint::new(self)
+    }
+
+    /// Access the countries endpoint.
+    pub fn countries(&self) -> endpoints::CountriesEndpoint<'_> {
+        endpoints::CountriesEndpoint::new(self)
+    }
+
+    /// Access the currencies endpoint.
+    pub fn currencies(&self) -> endpoints::CurrenciesEndpoint<'_> {
+        endpoints::CurrenciesEndpoint::new(self)
+    }
+
+    /// Access the users endpoint.
+    pub fn users(&self) -> endpoints::UsersEndpoint<'_> {
+        endpoints::UsersEndpoint::new(self)
+    }
+
+    /// Access the banks endpoint.
+    pub fn banks(&self) -> endpoints::BanksEndpoint<'_> {
+        endpoints::BanksEndpoint::new(self)
+    }
+
+    /// Access the messages endpoint.
+    pub fn messages(&self) -> endpoints::MessagesEndpoint<'_> {
+        endpoints::MessagesEndpoint::new(self)
+    }
+
+    /// Access the approvals endpoint.
+    pub fn approvals(&self) -> endpoints::ApprovalsEndpoint<'_> {
+        endpoints::ApprovalsEndpoint::new(self)
     }
 }
 

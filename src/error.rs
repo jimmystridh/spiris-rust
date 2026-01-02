@@ -18,10 +18,7 @@ pub enum Error {
 
     /// API returned an error response.
     #[error("API error: {status_code} - {message}")]
-    ApiError {
-        status_code: u16,
-        message: String,
-    },
+    ApiError { status_code: u16, message: String },
 
     /// Authentication failed.
     #[error("Authentication failed: {0}")]
