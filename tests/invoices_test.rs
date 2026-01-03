@@ -1,9 +1,11 @@
+// Skip these tests when decimal feature is enabled (uses f64 literals)
+#![cfg(not(feature = "decimal"))]
 //! Integration tests for the Invoices endpoint.
 
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::{Invoice, InvoicePayment, InvoiceRow, PaginationParams};
+use spiris::{Invoice, InvoicePayment, InvoiceRow, PaginationParams};
 
 #[tokio::test]
 async fn test_list_invoices() {

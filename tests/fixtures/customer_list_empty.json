@@ -1,0 +1,11 @@
+{
+    "Data": [],
+    "Meta": {
+        "CurrentPage": 0,
+        "PageSize": 50,
+        "TotalPages": 0,
+        "TotalCount": 0,
+        "HasNextPage": false,
+        "HasPreviousPage": false
+    }
+}

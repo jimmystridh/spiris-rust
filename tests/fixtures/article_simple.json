@@ -1,0 +1,12 @@
+{
+    "Id": "art-001",
+    "ArticleNumber": "ART-001",
+    "Name": "Software License",
+    "Unit": "pcs",
+    "SalesPrice": 5000.00,
+    "PurchasePrice": 2000.00,
+    "IsActive": true,
+    "VatRateId": "vat-25",
+    "CreatedUtc": "2024-01-10T08:00:00Z",
+    "ModifiedUtc": "2024-03-15T14:30:00Z"
+}

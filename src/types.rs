@@ -4,6 +4,64 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// Type alias for monetary values.
+///
+/// When the `decimal` feature is enabled, this is `rust_decimal::Decimal` for precise
+/// financial calculations. Otherwise, it defaults to `f64` for simplicity.
+///
+/// # Example with decimal feature
+///
+/// ```toml
+/// [dependencies]
+/// spiris = { version = "0.1", features = ["decimal"] }
+/// ```
+///
+/// ```ignore
+/// use spiris::Money;
+/// use rust_decimal_macros::dec;
+///
+/// let price: Money = dec!(100.50);
+/// let quantity: Money = dec!(3);
+/// let total = price * quantity;  // Precise calculation
+/// assert_eq!(total, dec!(301.50));
+/// ```
+#[cfg(feature = "decimal")]
+pub type Money = rust_decimal::Decimal;
+
+/// Type alias for monetary values.
+///
+/// This is the default `f64` representation. For precise financial calculations,
+/// enable the `decimal` feature to use `rust_decimal::Decimal` instead.
+#[cfg(not(feature = "decimal"))]
+pub type Money = f64;
+
+/// Create a Money value from a float literal.
+///
+/// This macro works with both the `decimal` feature enabled (Decimal) and
+/// disabled (f64), making test code portable.
+///
+/// # Example
+///
+/// ```
+/// use spiris::{money, Money};
+///
+/// let price: Money = money!(100.50);
+/// ```
+#[macro_export]
+macro_rules! money {
+    ($val:expr) => {{
+        #[cfg(feature = "decimal")]
+        {
+            use std::str::FromStr;
+            rust_decimal::Decimal::from_str(stringify!($val)).expect("Invalid decimal literal")
+        }
+        #[cfg(not(feature = "decimal"))]
+        {
+            $val as f64
+        }
+    }};
+}
+
 /// Pagination parameters for list requests.
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct PaginationParams {
@@ -196,15 +254,15 @@ pub struct Invoice {
 
     /// Total amount excluding VAT.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
 
     /// Total VAT amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_vat_amount: Option<f64>,
+    pub total_vat_amount: Option<Money>,
 
     /// Total amount including VAT.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount_including_vat: Option<f64>,
+    pub total_amount_including_vat: Option<Money>,
 
     /// Whether the invoice is sent.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -241,15 +299,15 @@ pub struct InvoiceRow {
 
     /// Unit price.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unit_price: Option<f64>,
+    pub unit_price: Option<Money>,
 
     /// Quantity.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<f64>,
+    pub quantity: Option<Money>,
 
     /// Discount percentage (0-100).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub discount_percentage: Option<f64>,
+    pub discount_percentage: Option<Money>,
 
     /// VAT rate ID.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -257,7 +315,7 @@ pub struct InvoiceRow {
 
     /// Total amount for this row.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
 }
 
 /// Article/Product.
@@ -282,11 +340,11 @@ pub struct Article {
 
     /// Sales price.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sales_price: Option<f64>,
+    pub sales_price: Option<Money>,
 
     /// Purchase price.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub purchase_price: Option<f64>,
+    pub purchase_price: Option<Money>,
 
     /// Whether the article is active.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -343,15 +401,15 @@ pub struct CustomerInvoiceDraft {
 
     /// Total amount excluding VAT.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
 
     /// Total VAT amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_vat_amount: Option<f64>,
+    pub total_vat_amount: Option<Money>,
 
     /// Total amount including VAT.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount_including_vat: Option<f64>,
+    pub total_amount_including_vat: Option<Money>,
 
     /// Remarks/notes.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -392,15 +450,15 @@ pub struct CustomerInvoiceDraftRow {
 
     /// Unit price.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unit_price: Option<f64>,
+    pub unit_price: Option<Money>,
 
     /// Quantity.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<f64>,
+    pub quantity: Option<Money>,
 
     /// Discount percentage (0-100).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub discount_percentage: Option<f64>,
+    pub discount_percentage: Option<Money>,
 
     /// VAT rate ID.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -408,7 +466,7 @@ pub struct CustomerInvoiceDraftRow {
 
     /// Total amount for this row.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
 }
 
 /// Options for converting a draft to an invoice.
@@ -442,7 +500,7 @@ pub struct CustomerLedgerItem {
 
     /// Amount in currency.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub currency_amount: Option<f64>,
+    pub currency_amount: Option<Money>,
 
     /// Currency code.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -450,7 +508,7 @@ pub struct CustomerLedgerItem {
 
     /// Amount in domestic currency.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub amount: Option<f64>,
+    pub amount: Option<Money>,
 
     /// Payment date.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -504,7 +562,7 @@ pub struct CustomerLabel {
 pub struct InvoicePayment {
     /// Payment amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub amount: Option<f64>,
+    pub amount: Option<Money>,
 
     /// Payment date.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -520,7 +578,7 @@ pub struct InvoicePayment {
 
     /// Currency rate (exchange rate).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub currency_rate: Option<f64>,
+    pub currency_rate: Option<Money>,
 }
 
 // =============================================================================
@@ -622,7 +680,7 @@ pub struct SupplierInvoice {
 
     /// Currency rate.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub currency_rate: Option<f64>,
+    pub currency_rate: Option<Money>,
 
     /// Invoice rows/line items.
     #[serde(default)]
@@ -630,15 +688,15 @@ pub struct SupplierInvoice {
 
     /// Total amount excluding VAT.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
 
     /// Total VAT amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_vat_amount: Option<f64>,
+    pub total_vat_amount: Option<Money>,
 
     /// Total amount including VAT.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount_including_vat: Option<f64>,
+    pub total_amount_including_vat: Option<Money>,
 
     /// Whether the invoice is paid.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -679,11 +737,11 @@ pub struct SupplierInvoiceRow {
 
     /// Amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub amount: Option<f64>,
+    pub amount: Option<Money>,
 
     /// VAT amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub vat_amount: Option<f64>,
+    pub vat_amount: Option<Money>,
 
     /// VAT rate ID.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -732,7 +790,7 @@ pub struct Account {
 
     /// Opening balance.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub opening_balance: Option<f64>,
+    pub opening_balance: Option<Money>,
 }
 
 /// Account balance at a specific date.
@@ -749,7 +807,7 @@ pub struct AccountBalance {
 
     /// Balance amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub balance: Option<f64>,
+    pub balance: Option<Money>,
 }
 
 /// Account type definition.
@@ -808,7 +866,7 @@ pub struct VatCode {
 
     /// VAT rate percentage.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub vat_rate: Option<f64>,
+    pub vat_rate: Option<Money>,
 }
 
 /// Voucher (journal entry).
@@ -858,11 +916,11 @@ pub struct VoucherRow {
 
     /// Debit amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub debit_amount: Option<f64>,
+    pub debit_amount: Option<Money>,
 
     /// Credit amount.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub credit_amount: Option<f64>,
+    pub credit_amount: Option<Money>,
 
     /// Transaction text.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1017,9 +1075,9 @@ pub struct Order {
     #[serde(default)]
     pub rows: Vec<OrderRow>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_vat_amount: Option<f64>,
+    pub total_vat_amount: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1043,13 +1101,13 @@ pub struct OrderRow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unit_price: Option<f64>,
+    pub unit_price: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<f64>,
+    pub quantity: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub discount_percentage: Option<f64>,
+    pub discount_percentage: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub delivered_quantity: Option<f64>,
+    pub delivered_quantity: Option<Money>,
 }
 
 /// Sales quotation.
@@ -1071,9 +1129,9 @@ pub struct Quotation {
     #[serde(default)]
     pub rows: Vec<QuotationRow>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_vat_amount: Option<f64>,
+    pub total_vat_amount: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1093,11 +1151,11 @@ pub struct QuotationRow {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unit_price: Option<f64>,
+    pub unit_price: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<f64>,
+    pub quantity: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub discount_percentage: Option<f64>,
+    pub discount_percentage: Option<Money>,
 }
 
 // =============================================================================
@@ -1123,7 +1181,7 @@ pub struct SupplierInvoiceDraft {
     #[serde(default)]
     pub rows: Vec<SupplierInvoiceRow>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_amount: Option<f64>,
+    pub total_amount: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_utc: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1141,11 +1199,11 @@ pub struct SupplierLedgerItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub supplier_invoice_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub currency_amount: Option<f64>,
+    pub currency_amount: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub currency_code: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub amount: Option<f64>,
+    pub amount: Option<Money>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_date: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1440,9 +1498,26 @@ impl QueryParams {
         Self::default()
     }
 
-    /// Set a filter expression.
+    /// Set a filter expression from a string.
+    ///
+    /// For type-safe filter building, use `filter_by()` instead.
     pub fn filter(mut self, filter: impl Into<String>) -> Self {
         self.filter = Some(filter.into());
+        self
+    }
+
+    /// Set a type-safe filter expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use spiris::{QueryParams, query::Filter};
+    ///
+    /// let params = QueryParams::new()
+    ///     .filter_by(Filter::field("IsActive").eq(true));
+    /// ```
+    pub fn filter_by(mut self, filter: crate::query::Filter) -> Self {
+        self.filter = Some(filter.to_string());
         self
     }
 
@@ -1455,6 +1530,766 @@ impl QueryParams {
     /// Add a custom parameter.
     pub fn param(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.extra.insert(key.into(), value.into());
+        self
+    }
+}
+
+// =============================================================================
+// Typed Request Types (Create/Update)
+// =============================================================================
+//
+// These types provide compile-time enforcement of required fields for create
+// and update operations. They separate concerns between:
+// - Response types (what the API returns)
+// - Create types (required fields for creating new entities)
+// - Update types (all optional for partial updates)
+
+/// Data required to create a new customer.
+///
+/// This type enforces that required fields (like `name`) are provided
+/// at compile time, preventing runtime validation errors.
+///
+/// # Example
+///
+/// ```
+/// use spiris::CustomerCreate;
+///
+/// let new_customer = CustomerCreate::new("Acme Corporation".to_string())
+///     .email("contact@acme.com".to_string())
+///     .phone("+46701234567".to_string());
+/// ```
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct CustomerCreate {
+    /// Customer name (required).
+    pub name: String,
+
+    /// Customer number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub customer_number: Option<String>,
+
+    /// Corporate identity number (organization number).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub corporate_identity_number: Option<String>,
+
+    /// Email address.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+
+    /// Phone number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub phone: Option<String>,
+
+    /// Mobile phone number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mobile_phone: Option<String>,
+
+    /// Website URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub website: Option<String>,
+
+    /// Invoice address.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invoice_address: Option<Address>,
+
+    /// Delivery address.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delivery_address: Option<Address>,
+
+    /// Payment terms in days.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payment_terms_in_days: Option<u32>,
+
+    /// Whether the customer is active.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_active: Option<bool>,
+
+    /// Whether the customer is private (person).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_private_person: Option<bool>,
+}
+
+impl CustomerCreate {
+    /// Create a new customer with the required name.
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            customer_number: None,
+            corporate_identity_number: None,
+            email: None,
+            phone: None,
+            mobile_phone: None,
+            website: None,
+            invoice_address: None,
+            delivery_address: None,
+            payment_terms_in_days: None,
+            is_active: None,
+            is_private_person: None,
+        }
+    }
+
+    /// Set the customer number.
+    pub fn customer_number(mut self, value: String) -> Self {
+        self.customer_number = Some(value);
+        self
+    }
+
+    /// Set the corporate identity number.
+    pub fn corporate_identity_number(mut self, value: String) -> Self {
+        self.corporate_identity_number = Some(value);
+        self
+    }
+
+    /// Set the email address.
+    pub fn email(mut self, value: String) -> Self {
+        self.email = Some(value);
+        self
+    }
+
+    /// Set the phone number.
+    pub fn phone(mut self, value: String) -> Self {
+        self.phone = Some(value);
+        self
+    }
+
+    /// Set the mobile phone number.
+    pub fn mobile_phone(mut self, value: String) -> Self {
+        self.mobile_phone = Some(value);
+        self
+    }
+
+    /// Set the website URL.
+    pub fn website(mut self, value: String) -> Self {
+        self.website = Some(value);
+        self
+    }
+
+    /// Set the invoice address.
+    pub fn invoice_address(mut self, value: Address) -> Self {
+        self.invoice_address = Some(value);
+        self
+    }
+
+    /// Set the delivery address.
+    pub fn delivery_address(mut self, value: Address) -> Self {
+        self.delivery_address = Some(value);
+        self
+    }
+
+    /// Set the payment terms in days.
+    pub fn payment_terms_in_days(mut self, value: u32) -> Self {
+        self.payment_terms_in_days = Some(value);
+        self
+    }
+
+    /// Set whether the customer is active.
+    pub fn is_active(mut self, value: bool) -> Self {
+        self.is_active = Some(value);
+        self
+    }
+
+    /// Set whether the customer is a private person.
+    pub fn is_private_person(mut self, value: bool) -> Self {
+        self.is_private_person = Some(value);
+        self
+    }
+}
+
+/// Data for updating an existing customer.
+///
+/// All fields are optional, allowing partial updates.
+/// Only fields that are set will be included in the request.
+///
+/// # Example
+///
+/// ```
+/// use spiris::CustomerUpdate;
+///
+/// // Update only the email
+/// let update = CustomerUpdate::new()
+///     .email("newemail@example.com".to_string());
+/// ```
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct CustomerUpdate {
+    /// Customer name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
+    /// Customer number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub customer_number: Option<String>,
+
+    /// Corporate identity number (organization number).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub corporate_identity_number: Option<String>,
+
+    /// Email address.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+
+    /// Phone number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub phone: Option<String>,
+
+    /// Mobile phone number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mobile_phone: Option<String>,
+
+    /// Website URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub website: Option<String>,
+
+    /// Invoice address.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invoice_address: Option<Address>,
+
+    /// Delivery address.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delivery_address: Option<Address>,
+
+    /// Payment terms in days.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payment_terms_in_days: Option<u32>,
+
+    /// Whether the customer is active.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_active: Option<bool>,
+
+    /// Whether the customer is private (person).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_private_person: Option<bool>,
+}
+
+impl CustomerUpdate {
+    /// Create an empty update (use builder methods to set fields).
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the customer name.
+    pub fn name(mut self, value: String) -> Self {
+        self.name = Some(value);
+        self
+    }
+
+    /// Set the customer number.
+    pub fn customer_number(mut self, value: String) -> Self {
+        self.customer_number = Some(value);
+        self
+    }
+
+    /// Set the corporate identity number.
+    pub fn corporate_identity_number(mut self, value: String) -> Self {
+        self.corporate_identity_number = Some(value);
+        self
+    }
+
+    /// Set the email address.
+    pub fn email(mut self, value: String) -> Self {
+        self.email = Some(value);
+        self
+    }
+
+    /// Set the phone number.
+    pub fn phone(mut self, value: String) -> Self {
+        self.phone = Some(value);
+        self
+    }
+
+    /// Set the mobile phone number.
+    pub fn mobile_phone(mut self, value: String) -> Self {
+        self.mobile_phone = Some(value);
+        self
+    }
+
+    /// Set the website URL.
+    pub fn website(mut self, value: String) -> Self {
+        self.website = Some(value);
+        self
+    }
+
+    /// Set the invoice address.
+    pub fn invoice_address(mut self, value: Address) -> Self {
+        self.invoice_address = Some(value);
+        self
+    }
+
+    /// Set the delivery address.
+    pub fn delivery_address(mut self, value: Address) -> Self {
+        self.delivery_address = Some(value);
+        self
+    }
+
+    /// Set the payment terms in days.
+    pub fn payment_terms_in_days(mut self, value: u32) -> Self {
+        self.payment_terms_in_days = Some(value);
+        self
+    }
+
+    /// Set whether the customer is active.
+    pub fn is_active(mut self, value: bool) -> Self {
+        self.is_active = Some(value);
+        self
+    }
+
+    /// Set whether the customer is a private person.
+    pub fn is_private_person(mut self, value: bool) -> Self {
+        self.is_private_person = Some(value);
+        self
+    }
+}
+
+/// Data required to create a new article.
+///
+/// # Example
+///
+/// ```
+/// use spiris::{ArticleCreate, money};
+///
+/// let article = ArticleCreate::new("Consulting Services".to_string())
+///     .article_number("SVC-001".to_string())
+///     .sales_price(money!(1500.0));
+/// ```
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct ArticleCreate {
+    /// Article name (required).
+    pub name: String,
+
+    /// Article number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub article_number: Option<String>,
+
+    /// Unit label (e.g., "pcs", "hours").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unit: Option<String>,
+
+    /// Sales price.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sales_price: Option<Money>,
+
+    /// Purchase price.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub purchase_price: Option<Money>,
+
+    /// Whether the article is active.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_active: Option<bool>,
+
+    /// VAT rate ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vat_rate_id: Option<String>,
+}
+
+impl ArticleCreate {
+    /// Create a new article with the required name.
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            article_number: None,
+            unit: None,
+            sales_price: None,
+            purchase_price: None,
+            is_active: None,
+            vat_rate_id: None,
+        }
+    }
+
+    /// Set the article number.
+    pub fn article_number(mut self, value: String) -> Self {
+        self.article_number = Some(value);
+        self
+    }
+
+    /// Set the unit label.
+    pub fn unit(mut self, value: String) -> Self {
+        self.unit = Some(value);
+        self
+    }
+
+    /// Set the sales price.
+    pub fn sales_price(mut self, value: impl Into<Money>) -> Self {
+        self.sales_price = Some(value.into());
+        self
+    }
+
+    /// Set the purchase price.
+    pub fn purchase_price(mut self, value: impl Into<Money>) -> Self {
+        self.purchase_price = Some(value.into());
+        self
+    }
+
+    /// Set whether the article is active.
+    pub fn is_active(mut self, value: bool) -> Self {
+        self.is_active = Some(value);
+        self
+    }
+
+    /// Set the VAT rate ID.
+    pub fn vat_rate_id(mut self, value: String) -> Self {
+        self.vat_rate_id = Some(value);
+        self
+    }
+}
+
+/// Data for updating an existing article.
+///
+/// All fields are optional, allowing partial updates.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct ArticleUpdate {
+    /// Article name.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
+    /// Article number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub article_number: Option<String>,
+
+    /// Unit label.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unit: Option<String>,
+
+    /// Sales price.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sales_price: Option<Money>,
+
+    /// Purchase price.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub purchase_price: Option<Money>,
+
+    /// Whether the article is active.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_active: Option<bool>,
+
+    /// VAT rate ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vat_rate_id: Option<String>,
+}
+
+impl ArticleUpdate {
+    /// Create an empty update.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the article name.
+    pub fn name(mut self, value: String) -> Self {
+        self.name = Some(value);
+        self
+    }
+
+    /// Set the article number.
+    pub fn article_number(mut self, value: String) -> Self {
+        self.article_number = Some(value);
+        self
+    }
+
+    /// Set the unit label.
+    pub fn unit(mut self, value: String) -> Self {
+        self.unit = Some(value);
+        self
+    }
+
+    /// Set the sales price.
+    pub fn sales_price(mut self, value: impl Into<Money>) -> Self {
+        self.sales_price = Some(value.into());
+        self
+    }
+
+    /// Set the purchase price.
+    pub fn purchase_price(mut self, value: impl Into<Money>) -> Self {
+        self.purchase_price = Some(value.into());
+        self
+    }
+
+    /// Set whether the article is active.
+    pub fn is_active(mut self, value: bool) -> Self {
+        self.is_active = Some(value);
+        self
+    }
+
+    /// Set the VAT rate ID.
+    pub fn vat_rate_id(mut self, value: String) -> Self {
+        self.vat_rate_id = Some(value);
+        self
+    }
+}
+
+/// A row/line item for creating an invoice.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct InvoiceRowCreate {
+    /// Article/product ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub article_id: Option<String>,
+
+    /// Description/text.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+
+    /// Unit price.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unit_price: Option<Money>,
+
+    /// Quantity.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quantity: Option<Money>,
+
+    /// Discount percentage (0-100).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub discount_percentage: Option<Money>,
+
+    /// VAT rate ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vat_rate_id: Option<String>,
+}
+
+impl InvoiceRowCreate {
+    /// Create a new invoice row.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Create an invoice row with an article reference.
+    pub fn with_article(article_id: String, quantity: Money) -> Self {
+        Self {
+            article_id: Some(article_id),
+            quantity: Some(quantity),
+            ..Default::default()
+        }
+    }
+
+    /// Create an invoice row with text description.
+    pub fn with_text(text: String, unit_price: Money, quantity: Money) -> Self {
+        Self {
+            text: Some(text),
+            unit_price: Some(unit_price),
+            quantity: Some(quantity),
+            ..Default::default()
+        }
+    }
+
+    /// Set the article ID.
+    pub fn article_id(mut self, value: String) -> Self {
+        self.article_id = Some(value);
+        self
+    }
+
+    /// Set the text description.
+    pub fn text(mut self, value: String) -> Self {
+        self.text = Some(value);
+        self
+    }
+
+    /// Set the unit price.
+    pub fn unit_price(mut self, value: impl Into<Money>) -> Self {
+        self.unit_price = Some(value.into());
+        self
+    }
+
+    /// Set the quantity.
+    pub fn quantity(mut self, value: impl Into<Money>) -> Self {
+        self.quantity = Some(value.into());
+        self
+    }
+
+    /// Set the discount percentage.
+    pub fn discount_percentage(mut self, value: impl Into<Money>) -> Self {
+        self.discount_percentage = Some(value.into());
+        self
+    }
+
+    /// Set the VAT rate ID.
+    pub fn vat_rate_id(mut self, value: String) -> Self {
+        self.vat_rate_id = Some(value);
+        self
+    }
+}
+
+/// Data required to create a new invoice.
+///
+/// # Example
+///
+/// ```
+/// use spiris::{InvoiceCreate, InvoiceRowCreate, money};
+///
+/// let invoice = InvoiceCreate::new("customer-id-123".to_string())
+///     .row(InvoiceRowCreate::with_text(
+///         "Consulting".to_string(),
+///         money!(1500.0),
+///         money!(10.0),
+///     ))
+///     .remarks("Thank you for your business!".to_string());
+/// ```
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct InvoiceCreate {
+    /// Customer ID (required).
+    pub customer_id: String,
+
+    /// Invoice date.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invoice_date: Option<DateTime<Utc>>,
+
+    /// Due date.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub due_date: Option<DateTime<Utc>>,
+
+    /// Delivery date.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delivery_date: Option<DateTime<Utc>>,
+
+    /// Currency code (ISO 4217).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub currency_code: Option<String>,
+
+    /// Invoice rows/line items.
+    pub rows: Vec<InvoiceRowCreate>,
+
+    /// Remarks/notes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remarks: Option<String>,
+}
+
+impl InvoiceCreate {
+    /// Create a new invoice for a customer.
+    pub fn new(customer_id: String) -> Self {
+        Self {
+            customer_id,
+            invoice_date: None,
+            due_date: None,
+            delivery_date: None,
+            currency_code: None,
+            rows: Vec::new(),
+            remarks: None,
+        }
+    }
+
+    /// Set the invoice date.
+    pub fn invoice_date(mut self, value: DateTime<Utc>) -> Self {
+        self.invoice_date = Some(value);
+        self
+    }
+
+    /// Set the due date.
+    pub fn due_date(mut self, value: DateTime<Utc>) -> Self {
+        self.due_date = Some(value);
+        self
+    }
+
+    /// Set the delivery date.
+    pub fn delivery_date(mut self, value: DateTime<Utc>) -> Self {
+        self.delivery_date = Some(value);
+        self
+    }
+
+    /// Set the currency code.
+    pub fn currency_code(mut self, value: String) -> Self {
+        self.currency_code = Some(value);
+        self
+    }
+
+    /// Add a row to the invoice.
+    pub fn row(mut self, row: InvoiceRowCreate) -> Self {
+        self.rows.push(row);
+        self
+    }
+
+    /// Set all rows at once.
+    pub fn rows(mut self, rows: Vec<InvoiceRowCreate>) -> Self {
+        self.rows = rows;
+        self
+    }
+
+    /// Set the remarks/notes.
+    pub fn remarks(mut self, value: String) -> Self {
+        self.remarks = Some(value);
+        self
+    }
+}
+
+/// Data for updating an existing invoice.
+///
+/// All fields are optional, allowing partial updates.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct InvoiceUpdate {
+    /// Customer ID.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub customer_id: Option<String>,
+
+    /// Invoice date.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invoice_date: Option<DateTime<Utc>>,
+
+    /// Due date.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub due_date: Option<DateTime<Utc>>,
+
+    /// Delivery date.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delivery_date: Option<DateTime<Utc>>,
+
+    /// Currency code.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub currency_code: Option<String>,
+
+    /// Invoice rows (replaces existing rows if set).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rows: Option<Vec<InvoiceRowCreate>>,
+
+    /// Remarks/notes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remarks: Option<String>,
+}
+
+impl InvoiceUpdate {
+    /// Create an empty update.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the customer ID.
+    pub fn customer_id(mut self, value: String) -> Self {
+        self.customer_id = Some(value);
+        self
+    }
+
+    /// Set the invoice date.
+    pub fn invoice_date(mut self, value: DateTime<Utc>) -> Self {
+        self.invoice_date = Some(value);
+        self
+    }
+
+    /// Set the due date.
+    pub fn due_date(mut self, value: DateTime<Utc>) -> Self {
+        self.due_date = Some(value);
+        self
+    }
+
+    /// Set the delivery date.
+    pub fn delivery_date(mut self, value: DateTime<Utc>) -> Self {
+        self.delivery_date = Some(value);
+        self
+    }
+
+    /// Set the currency code.
+    pub fn currency_code(mut self, value: String) -> Self {
+        self.currency_code = Some(value);
+        self
+    }
+
+    /// Set the invoice rows (replaces all existing rows).
+    pub fn rows(mut self, rows: Vec<InvoiceRowCreate>) -> Self {
+        self.rows = Some(rows);
+        self
+    }
+
+    /// Set the remarks/notes.
+    pub fn remarks(mut self, value: String) -> Self {
+        self.remarks = Some(value);
         self
     }
 }

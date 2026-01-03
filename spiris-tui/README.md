@@ -466,7 +466,7 @@ Contributions are welcome! Please see the main [CONTRIBUTING.md](../CONTRIBUTING
 - **ratatui** - Terminal UI framework
 - **crossterm** - Terminal manipulation library
 - **tokio** - Async runtime
-- **spiris_bokforing** - Spiris API client library
+- **spiris** - Spiris API client library
 - **anyhow** - Error handling
 - **serde/serde_json** - Serialization
 - **chrono** - Date/time handling

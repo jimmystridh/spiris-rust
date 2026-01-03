@@ -132,16 +132,20 @@ mod tests {
 
     #[test]
     fn test_is_retryable_error() {
+        use crate::error::ApiErrorResponse;
+
         assert!(is_retryable_error(&Error::RateLimitExceeded(
             "test".to_string()
         )));
         assert!(is_retryable_error(&Error::ApiError {
             status_code: 500,
-            message: "Server error".to_string()
+            response: ApiErrorResponse::from_raw("Server error".to_string()),
+            raw_body: "Server error".to_string(),
         }));
         assert!(!is_retryable_error(&Error::ApiError {
             status_code: 400,
-            message: "Bad request".to_string()
+            response: ApiErrorResponse::from_raw("Bad request".to_string()),
+            raw_body: "Bad request".to_string(),
         }));
         assert!(!is_retryable_error(&Error::TokenExpired));
     }

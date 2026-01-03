@@ -1,9 +1,11 @@
+// Skip these tests when decimal feature is enabled (uses f64 literals)
+#![cfg(not(feature = "decimal"))]
 //! Integration tests for the Vouchers endpoint.
 
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::{PaginationParams, Voucher, VoucherRow};
+use spiris::{PaginationParams, Voucher, VoucherRow};
 
 #[tokio::test]
 async fn test_list_vouchers() {

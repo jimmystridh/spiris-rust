@@ -3,7 +3,7 @@
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::{PaginationParams, Supplier};
+use spiris::{PaginationParams, Supplier};
 
 #[tokio::test]
 async fn test_list_suppliers() {

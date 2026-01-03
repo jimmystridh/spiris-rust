@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 # Spiris API client
-spiris_bokforing = { path = ".." }
+spiris = { path = ".." }
 
 # TUI framework
 ratatui = "0.28"

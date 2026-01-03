@@ -1,14 +1,14 @@
 [package]
-name = "spiris_bokforing"
+name = "spiris"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.83"
 authors = ["Jimmy Stridh <jimmy@stridh.dev>"]
 description = "Rust client for the Spiris Bokföring och Fakturering API (formerly Visma eAccounting)"
 license = "MIT"
-repository = "https://github.com/jimmystridh/spiris-client-rs"
-homepage = "https://github.com/jimmystridh/spiris-client-rs"
-documentation = "https://docs.rs/spiris_bokforing"
+repository = "https://github.com/jimmystridh/spiris-rust"
+homepage = "https://github.com/jimmystridh/spiris-rust"
+documentation = "https://docs.rs/spiris"
 readme = "README.md"
 keywords = ["spiris", "visma", "eaccounting", "api", "accounting"]
 categories = ["api-bindings", "asynchronous"]
@@ -22,6 +22,10 @@ exclude = [
 [features]
 default = []
 tracing = ["dep:tracing"]
+stream = ["dep:futures", "dep:async-stream"]
+rate-limit = ["dep:governor"]
+decimal = ["dep:rust_decimal"]
+webhooks = ["dep:hmac", "dep:sha2", "dep:hex"]
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
@@ -33,10 +37,22 @@ chrono = { version = "0.4", features = ["serde"] }
 url = "2.5"
 oauth2 = "4.4"
 tracing = { version = "0.1", optional = true }
+futures = { version = "0.3", optional = true }
+async-stream = { version = "0.3", optional = true }
+governor = { version = "0.6", optional = true }
+rust_decimal = { version = "1.33", features = ["serde-with-float"], optional = true }
+hmac = { version = "0.12", optional = true }
+sha2 = { version = "0.10", optional = true }
+hex = { version = "0.4", optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"
 mockito = "1.2"
+criterion = { version = "0.5", features = ["async_tokio"] }
+
+[[bench]]
+name = "client_bench"
+harness = false
 
 [package.metadata.docs.rs]
 all-features = true

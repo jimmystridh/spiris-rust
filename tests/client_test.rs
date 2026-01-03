@@ -3,7 +3,7 @@
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::{AccessToken, Client, ClientConfig};
+use spiris::{AccessToken, Client, ClientConfig};
 
 #[tokio::test]
 async fn test_client_with_custom_config() {
@@ -155,7 +155,7 @@ async fn test_client_content_type_on_post() {
         .with_body(r#"{"Id": "new-cust", "Name": "Test"}"#)
         .create();
 
-    let customer = spiris_bokforing::Customer {
+    let customer = spiris::Customer {
         name: Some("Test".to_string()),
         ..Default::default()
     };

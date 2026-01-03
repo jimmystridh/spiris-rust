@@ -4,7 +4,7 @@
 //! for handling user input, navigating screens, and managing data.
 
 use anyhow::Result;
-use spiris_bokforing::{AccessToken, Article, Client, Customer, Invoice, InvoiceRow, PaginationParams};
+use spiris::{AccessToken, Article, Client, Customer, Invoice, InvoiceRow, PaginationParams};
 use std::path::PathBuf;
 use crate::config::Config;
 

@@ -3,7 +3,7 @@
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::Project;
+use spiris::Project;
 
 #[tokio::test]
 async fn test_list_projects() {

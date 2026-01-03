@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 This is a Rust workspace containing two crates:
-- **spiris_bokforing** (root): API client library for Spiris Bokföring och Fakturering (formerly Visma eAccounting)
+- **spiris** (root): API client library for Spiris Bokföring och Fakturering (formerly Visma eAccounting)
 - **spiris-tui**: Terminal UI application built on the API client
 
 ## Build & Test Commands

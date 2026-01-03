@@ -1,0 +1,29 @@
+{
+    "Id": "cust-002",
+    "CustomerNumber": "1002",
+    "CorporateIdentityNumber": "556677-8899",
+    "Name": "Full Details AB",
+    "Email": "info@fulldetails.se",
+    "Phone": "+46 8 123 456 78",
+    "MobilePhone": "+46 70 123 45 67",
+    "Website": "https://www.fulldetails.se",
+    "InvoiceAddress": {
+        "Address1": "Storgatan 1",
+        "Address2": "Box 123",
+        "PostalCode": "111 22",
+        "City": "Stockholm",
+        "CountryCode": "SE"
+    },
+    "DeliveryAddress": {
+        "Address1": "Leveransgatan 5",
+        "Address2": null,
+        "PostalCode": "111 33",
+        "City": "Stockholm",
+        "CountryCode": "SE"
+    },
+    "PaymentTermsInDays": 30,
+    "IsActive": true,
+    "IsPrivatePerson": false,
+    "CreatedUtc": "2024-01-15T10:30:00Z",
+    "ModifiedUtc": "2024-06-20T14:45:00Z"
+}

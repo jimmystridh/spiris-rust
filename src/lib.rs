@@ -15,7 +15,7 @@
 //! ## Quick Start
 //!
 //! ```no_run
-//! use spiris_bokforing::{Client, AccessToken};
+//! use spiris::{Client, AccessToken};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,7 +36,7 @@
 //! ## OAuth2 Authentication
 //!
 //! ```no_run
-//! use spiris_bokforing::auth::{OAuth2Config, OAuth2Handler};
+//! use spiris::auth::{OAuth2Config, OAuth2Handler};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -62,7 +62,7 @@
 //! ## Working with Customers
 //!
 //! ```no_run
-//! use spiris_bokforing::{Client, AccessToken, Customer, PaginationParams};
+//! use spiris::{Client, AccessToken, Customer, PaginationParams};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! # let token = AccessToken::new("token".to_string(), 3600, None);
@@ -87,8 +87,8 @@
 //!
 //! ## Creating Invoices
 //!
-//! ```no_run
-//! use spiris_bokforing::{Client, AccessToken, Invoice, InvoiceRow};
+//! ```ignore
+//! use spiris::{Client, AccessToken, Invoice, InvoiceRow, money};
 //! use chrono::Utc;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -100,8 +100,8 @@
 //!     rows: vec![
 //!         InvoiceRow {
 //!             text: Some("Consulting services".to_string()),
-//!             unit_price: Some(1000.0),
-//!             quantity: Some(10.0),
+//!             unit_price: Some(money!(1000.0)),
+//!             quantity: Some(money!(10.0)),
 //!             ..Default::default()
 //!         }
 //!     ],
@@ -116,7 +116,7 @@
 //! ## Advanced Configuration
 //!
 //! ```no_run
-//! use spiris_bokforing::{Client, AccessToken, ClientConfig, RetryConfig};
+//! use spiris::{Client, AccessToken, ClientConfig, RetryConfig};
 //! use std::time::Duration;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -142,24 +142,36 @@ pub mod auth;
 pub mod client;
 pub mod endpoints;
 pub mod error;
+#[macro_use]
+pub mod macros;
+pub mod middleware;
+#[cfg(feature = "stream")]
+pub mod pagination;
+pub mod query;
+#[cfg(feature = "rate-limit")]
+pub mod rate_limit;
 pub mod retry;
 pub mod types;
+#[cfg(feature = "webhooks")]
+pub mod webhooks;
 
 // Re-export commonly used types
 pub use auth::{AccessToken, OAuth2Config, OAuth2Handler};
 pub use client::{Client, ClientConfig};
-pub use error::{Error, Result};
+pub use error::{ApiErrorResponse, Error, Result, ValidationError};
+#[cfg(feature = "rate-limit")]
+pub use rate_limit::RateLimitConfig;
 pub use retry::RetryConfig;
 pub use types::{
     Account, AccountBalance, AccountType, Address, AllocationPeriod, Article, ArticleAccountCoding,
-    ArticleLabel, Attachment, AttachmentLink, Bank, BankAccount, CompanySettings,
-    ConvertDraftOptions, CostCenter, CostCenterItem, Country, Currency, Customer,
-    CustomerInvoiceDraft, CustomerInvoiceDraftRow, CustomerLabel, CustomerLedgerItem,
-    DeliveryMethod, DeliveryTerm, Document, FiscalYear, ForeignPaymentCode, Invoice,
-    InvoicePayment, InvoiceRow, Message, MessageThread, Order, OrderRow, PaginatedResponse,
-    PaginationParams, Project, QueryParams, Quotation, QuotationRow, ResponseMetadata, Supplier,
-    SupplierInvoice, SupplierInvoiceDraft, SupplierInvoiceRow, SupplierLabel, SupplierLedgerItem,
-    TermsOfPayment, Unit, User, VatCode, Voucher, VoucherRow,
+    ArticleCreate, ArticleLabel, ArticleUpdate, Attachment, AttachmentLink, Bank, BankAccount,
+    CompanySettings, ConvertDraftOptions, CostCenter, CostCenterItem, Country, Currency, Customer,
+    CustomerCreate, CustomerInvoiceDraft, CustomerInvoiceDraftRow, CustomerLabel, CustomerLedgerItem,
+    CustomerUpdate, DeliveryMethod, DeliveryTerm, Document, FiscalYear, ForeignPaymentCode, Invoice,
+    InvoiceCreate, InvoicePayment, InvoiceRow, InvoiceRowCreate, InvoiceUpdate, Message, MessageThread,
+    Money, Order, OrderRow, PaginatedResponse, PaginationParams, Project, QueryParams, Quotation,
+    QuotationRow, ResponseMetadata, Supplier, SupplierInvoice, SupplierInvoiceDraft, SupplierInvoiceRow,
+    SupplierLabel, SupplierLedgerItem, TermsOfPayment, Unit, User, VatCode, Voucher, VoucherRow,
 };
 
 // Add endpoint accessors to the Client
@@ -169,7 +181,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, AccessToken};
+    /// # use spiris::{Client, AccessToken};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let token = AccessToken::new("token".to_string(), 3600, None);
     /// let client = Client::new(token);
@@ -186,7 +198,7 @@ impl Client {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, AccessToken};
+    /// # use spiris::{Client, AccessToken};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let token = AccessToken::new("token".to_string(), 3600, None);
     /// let client = Client::new(token);

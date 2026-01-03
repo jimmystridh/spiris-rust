@@ -9,7 +9,7 @@ use crate::types::{Article, PaginatedResponse, PaginationParams, QueryParams};
 /// # Example
 ///
 /// ```no_run
-/// use spiris_bokforing::{Client, AccessToken};
+/// use spiris::{Client, AccessToken};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,7 +43,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, PaginationParams};
+    /// # use spiris::{Client, PaginationParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = PaginationParams::new().page(0).pagesize(100);
     /// let articles = client.articles().list(Some(params)).await?;
@@ -70,7 +70,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let article = client.articles().get("article-id-123").await?;
     /// println!("Article: {:?}", article.name);
@@ -90,13 +90,13 @@ impl<'a> ArticlesEndpoint<'a> {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// # use spiris_bokforing::{Client, Article};
+    /// ```ignore
+    /// # use spiris::{Client, Article, money};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let new_article = Article {
     ///     name: Some("Consulting Hour".to_string()),
     ///     unit: Some("hours".to_string()),
-    ///     sales_price: Some(1000.0),
+    ///     sales_price: Some(money!(1000.0)),
     ///     ..Default::default()
     /// };
     /// let created = client.articles().create(&new_article).await?;
@@ -116,11 +116,11 @@ impl<'a> ArticlesEndpoint<'a> {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// ```ignore
+    /// # use spiris::{Client, money};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let mut article = client.articles().get("article-id-123").await?;
-    /// article.sales_price = Some(1200.0);
+    /// article.sales_price = Some(money!(1200.0));
     /// let updated = client.articles().update("article-id-123", &article).await?;
     /// # Ok(())
     /// # }
@@ -139,7 +139,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// client.articles().delete("article-id-123").await?;
     /// # Ok(())
@@ -160,7 +160,7 @@ impl<'a> ArticlesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, QueryParams};
+    /// # use spiris::{Client, QueryParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let query = QueryParams::new()
     ///     .filter("IsActive eq true")
@@ -184,5 +184,24 @@ impl<'a> ArticlesEndpoint<'a> {
 
         let params = CombinedParams { query, pagination };
         self.client.get_with_params("/articles", &params).await
+    }
+
+    /// Stream all articles, automatically paginating through results.
+    ///
+    /// Requires the `stream` feature.
+    #[cfg(feature = "stream")]
+    pub fn list_stream(&self) -> impl futures::Stream<Item = Result<Article>> + '_ {
+        self.list_stream_with_page_size(crate::pagination::DEFAULT_PAGE_SIZE)
+    }
+
+    /// Stream all articles with a custom page size.
+    ///
+    /// Requires the `stream` feature.
+    #[cfg(feature = "stream")]
+    pub fn list_stream_with_page_size(
+        &self,
+        page_size: u32,
+    ) -> impl futures::Stream<Item = Result<Article>> + '_ {
+        crate::paginated_stream!(page_size, |params| self.list(Some(params)))
     }
 }

@@ -6,7 +6,7 @@
 //! ```
 
 use chrono::Utc;
-use spiris_bokforing::{AccessToken, Client, Invoice, InvoiceRow};
+use spiris::{money, AccessToken, Client, Invoice, InvoiceRow};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -33,16 +33,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         rows: vec![
             InvoiceRow {
                 text: Some("Consulting services - Project A".to_string()),
-                unit_price: Some(1200.0),
-                quantity: Some(40.0), // 40 hours
-                discount_percentage: Some(0.0),
+                unit_price: Some(money!(1200.0)),
+                quantity: Some(money!(40.0)), // 40 hours
+                discount_percentage: Some(money!(0.0)),
                 ..Default::default()
             },
             InvoiceRow {
                 text: Some("Development services - Module B".to_string()),
-                unit_price: Some(1500.0),
-                quantity: Some(20.0),            // 20 hours
-                discount_percentage: Some(10.0), // 10% discount
+                unit_price: Some(money!(1500.0)),
+                quantity: Some(money!(20.0)),            // 20 hours
+                discount_percentage: Some(money!(10.0)), // 10% discount
                 ..Default::default()
             },
         ],

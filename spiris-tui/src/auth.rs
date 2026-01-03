@@ -2,7 +2,7 @@
 // This module handles OAuth2 flow and token management
 
 use anyhow::Result;
-use spiris_bokforing::{AccessToken, auth::{OAuth2Config, OAuth2Handler}};
+use spiris::{AccessToken, auth::{OAuth2Config, OAuth2Handler}};
 
 /// Start OAuth2 authentication flow
 pub async fn start_oauth_flow(

@@ -1,0 +1,33 @@
+{
+    "Data": [
+        {
+            "Id": "cust-001",
+            "CustomerNumber": "1001",
+            "Name": "Acme Corporation",
+            "Email": "contact@acme.com",
+            "IsActive": true
+        },
+        {
+            "Id": "cust-002",
+            "CustomerNumber": "1002",
+            "Name": "Beta Industries",
+            "Email": "info@beta.com",
+            "IsActive": true
+        },
+        {
+            "Id": "cust-003",
+            "CustomerNumber": "1003",
+            "Name": "Gamma Solutions",
+            "Email": "contact@gamma.se",
+            "IsActive": true
+        }
+    ],
+    "Meta": {
+        "CurrentPage": 0,
+        "PageSize": 3,
+        "TotalPages": 2,
+        "TotalCount": 5,
+        "HasNextPage": true,
+        "HasPreviousPage": false
+    }
+}

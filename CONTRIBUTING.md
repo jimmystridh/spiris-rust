@@ -179,7 +179,7 @@ Use Rust doc comments:
 /// # Example
 ///
 /// ```
-/// use spiris_bokforing::Client;
+/// use spiris::Client;
 ///
 /// let result = function(param1, param2);
 /// ```

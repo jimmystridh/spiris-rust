@@ -8,7 +8,7 @@
 //! cargo run --example oauth_flow
 //! ```
 
-use spiris_bokforing::auth::{OAuth2Config, OAuth2Handler};
+use spiris::auth::{OAuth2Config, OAuth2Handler};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

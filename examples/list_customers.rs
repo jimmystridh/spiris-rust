@@ -5,7 +5,7 @@
 //! cargo run --example list_customers
 //! ```
 
-use spiris_bokforing::{AccessToken, Client, PaginationParams};
+use spiris::{AccessToken, Client, PaginationParams};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

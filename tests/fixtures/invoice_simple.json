@@ -1,0 +1,23 @@
+{
+    "Id": "inv-001",
+    "InvoiceNumber": "2001",
+    "CustomerId": "cust-001",
+    "InvoiceDate": "2024-06-15T00:00:00Z",
+    "DueDate": "2024-07-15T00:00:00Z",
+    "CurrencyCode": "SEK",
+    "Rows": [
+        {
+            "Id": "row-001",
+            "Text": "Consulting services",
+            "UnitPrice": 1500.00,
+            "Quantity": 10.0,
+            "TotalAmount": 15000.00
+        }
+    ],
+    "TotalAmount": 15000.00,
+    "TotalVatAmount": 3750.00,
+    "TotalAmountIncludingVat": 18750.00,
+    "IsSent": false,
+    "CreatedUtc": "2024-06-15T09:00:00Z",
+    "ModifiedUtc": "2024-06-15T09:00:00Z"
+}

@@ -1,9 +1,11 @@
+// Skip these tests when decimal feature is enabled (uses f64 literals)
+#![cfg(not(feature = "decimal"))]
 //! Integration tests for the Articles endpoint.
 
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::{Article, PaginationParams, QueryParams};
+use spiris::{Article, PaginationParams, QueryParams};
 
 #[tokio::test]
 async fn test_list_articles() {

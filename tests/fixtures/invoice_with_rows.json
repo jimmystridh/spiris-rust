@@ -1,0 +1,46 @@
+{
+    "Id": "inv-002",
+    "InvoiceNumber": "2002",
+    "CustomerId": "cust-002",
+    "InvoiceDate": "2024-06-20T00:00:00Z",
+    "DueDate": "2024-07-20T00:00:00Z",
+    "DeliveryDate": "2024-06-18T00:00:00Z",
+    "CurrencyCode": "SEK",
+    "Rows": [
+        {
+            "Id": "row-001",
+            "ArticleId": "art-001",
+            "Text": "Software License",
+            "UnitPrice": 5000.00,
+            "Quantity": 2.0,
+            "DiscountPercentage": 10.0,
+            "VatRateId": "vat-25",
+            "TotalAmount": 9000.00
+        },
+        {
+            "Id": "row-002",
+            "ArticleId": "art-002",
+            "Text": "Implementation Services",
+            "UnitPrice": 1200.00,
+            "Quantity": 40.0,
+            "DiscountPercentage": 0.0,
+            "VatRateId": "vat-25",
+            "TotalAmount": 48000.00
+        },
+        {
+            "Id": "row-003",
+            "Text": "Travel expenses",
+            "UnitPrice": 2500.00,
+            "Quantity": 1.0,
+            "VatRateId": "vat-25",
+            "TotalAmount": 2500.00
+        }
+    ],
+    "TotalAmount": 59500.00,
+    "TotalVatAmount": 14875.00,
+    "TotalAmountIncludingVat": 74375.00,
+    "IsSent": true,
+    "Remarks": "Payment due within 30 days",
+    "CreatedUtc": "2024-06-20T10:30:00Z",
+    "ModifiedUtc": "2024-06-21T08:15:00Z"
+}

@@ -1,9 +1,11 @@
+// Skip these tests when decimal feature is enabled (uses f64 literals)
+#![cfg(not(feature = "decimal"))]
 //! Integration tests for the Orders endpoint.
 
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::{Order, OrderRow};
+use spiris::{Order, OrderRow};
 
 #[tokio::test]
 async fn test_list_orders() {

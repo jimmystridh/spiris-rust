@@ -5,7 +5,7 @@
 //! cargo run --example create_customer
 //! ```
 
-use spiris_bokforing::{AccessToken, Address, Client, Customer};
+use spiris::{AccessToken, Address, Client, Customer};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

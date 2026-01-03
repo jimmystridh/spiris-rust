@@ -9,7 +9,7 @@ use crate::types::{Customer, PaginatedResponse, PaginationParams, QueryParams};
 /// # Example
 ///
 /// ```no_run
-/// use spiris_bokforing::{Client, AccessToken};
+/// use spiris::{Client, AccessToken};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,7 +43,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, AccessToken, PaginationParams};
+    /// # use spiris::{Client, AccessToken, PaginationParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = PaginationParams::new().page(0).pagesize(100);
     /// let customers = client.customers().list(Some(params)).await?;
@@ -70,7 +70,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let customer = client.customers().get("customer-id-123").await?;
     /// println!("Customer: {:?}", customer.name);
@@ -91,7 +91,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, Customer};
+    /// # use spiris::{Client, Customer};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let new_customer = Customer {
     ///     name: Some("Acme Corporation".to_string()),
@@ -116,7 +116,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let mut customer = client.customers().get("customer-id-123").await?;
     /// customer.email = Some("newemail@acme.com".to_string());
@@ -138,7 +138,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// client.customers().delete("customer-id-123").await?;
     /// # Ok(())
@@ -159,7 +159,7 @@ impl<'a> CustomersEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, QueryParams};
+    /// # use spiris::{Client, QueryParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let query = QueryParams::new()
     ///     .filter("IsActive eq true")
@@ -183,5 +183,49 @@ impl<'a> CustomersEndpoint<'a> {
 
         let params = CombinedParams { query, pagination };
         self.client.get_with_params("/customers", &params).await
+    }
+
+    /// Stream all customers, automatically paginating through results.
+    ///
+    /// This method returns a Stream that fetches customers page by page,
+    /// yielding individual customers. Use this when you need to process
+    /// all customers without loading everything into memory at once.
+    ///
+    /// Requires the `stream` feature.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use futures::StreamExt;
+    /// use tokio::pin;
+    /// use spiris::{Client, AccessToken};
+    ///
+    /// async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let token = AccessToken::new("token".to_string(), 3600, None);
+    ///     let client = Client::new(token);
+    ///
+    ///     let stream = client.customers().list_stream();
+    ///     pin!(stream);
+    ///     while let Some(result) = stream.next().await {
+    ///         let customer = result?;
+    ///         println!("Customer: {:?}", customer.name);
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    #[cfg(feature = "stream")]
+    pub fn list_stream(&self) -> impl futures::Stream<Item = Result<Customer>> + '_ {
+        self.list_stream_with_page_size(crate::pagination::DEFAULT_PAGE_SIZE)
+    }
+
+    /// Stream all customers with a custom page size.
+    ///
+    /// Requires the `stream` feature.
+    #[cfg(feature = "stream")]
+    pub fn list_stream_with_page_size(
+        &self,
+        page_size: u32,
+    ) -> impl futures::Stream<Item = Result<Customer>> + '_ {
+        crate::paginated_stream!(page_size, |params| self.list(Some(params)))
     }
 }

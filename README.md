@@ -1,8 +1,8 @@
 # Spiris Bokföring och Fakturering API Client for Rust
 
-[![Crates.io](https://img.shields.io/crates/v/spiris_bokforing.svg)](https://crates.io/crates/spiris_bokforing)
-[![Documentation](https://docs.rs/spiris_bokforing/badge.svg)](https://docs.rs/spiris_bokforing)
-[![CI](https://github.com/jimmystridh/spiris-bokforing-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/jimmystridh/spiris-bokforing-rs/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/spiris.svg)](https://crates.io/crates/spiris)
+[![Documentation](https://docs.rs/spiris/badge.svg)](https://docs.rs/spiris)
+[![CI](https://github.com/jimmystridh/spiris-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/jimmystridh/spiris-rust/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT)
 [![MSRV](https://img.shields.io/badge/MSRV-1.70-blue.svg)](https://blog.rust-lang.org/2023/06/01/Rust-1.70.0.html)
 
@@ -28,14 +28,14 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-spiris_bokforing = "0.1.0"
+spiris = "0.1.0"
 tokio = { version = "1.0", features = ["full"] }
 ```
 
 ## Quick Start
 
 ```rust
-use spiris_bokforing::{Client, AccessToken};
+use spiris::{Client, AccessToken};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -67,7 +67,7 @@ First, register your application in the [Visma Developer Portal](https://develop
 ### 2. Implement OAuth2 Flow
 
 ```rust
-use spiris_bokforing::auth::{OAuth2Config, OAuth2Handler};
+use spiris::auth::{OAuth2Config, OAuth2Handler};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -98,7 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### List Customers with Pagination
 
 ```rust
-use spiris_bokforing::{Client, AccessToken, PaginationParams};
+use spiris::{Client, AccessToken, PaginationParams};
 
 let token = AccessToken::new("your_token".to_string(), 3600, None);
 let client = Client::new(token);
@@ -114,7 +114,7 @@ for customer in customers.data {
 ### Create a Customer
 
 ```rust
-use spiris_bokforing::{Client, Customer, Address};
+use spiris::{Client, Customer, Address};
 
 let new_customer = Customer {
     name: Some("Acme Corporation".to_string()),
@@ -139,7 +139,7 @@ println!("Created customer with ID: {:?}", created.id);
 ### Create an Invoice
 
 ```rust
-use spiris_bokforing::{Client, Invoice, InvoiceRow};
+use spiris::{Client, Invoice, InvoiceRow};
 use chrono::Utc;
 
 let invoice = Invoice {
@@ -164,7 +164,7 @@ println!("Invoice #{:?} created", created_invoice.invoice_number);
 ### Search with Filters
 
 ```rust
-use spiris_bokforing::QueryParams;
+use spiris::QueryParams;
 
 let query = QueryParams::new()
     .filter("IsActive eq true")
@@ -176,7 +176,7 @@ let active_customers = client.customers().search(query, None).await?;
 ### Manage Articles/Products
 
 ```rust
-use spiris_bokforing::Article;
+use spiris::Article;
 
 let article = Article {
     name: Some("Consulting Hour".to_string()),
@@ -391,7 +391,7 @@ let created_article = client.articles().create(&article).await?;
 The library provides comprehensive error handling:
 
 ```rust
-use spiris_bokforing::Error;
+use spiris::Error;
 
 match client.customers().get("invalid-id").await {
     Ok(customer) => println!("Found customer: {:?}", customer.name),
@@ -411,7 +411,7 @@ The Spiris API has a rate limit of **600 requests per minute** per client per en
 Access tokens expire after 1 hour. The library checks token expiration before making requests and provides built-in token refresh:
 
 ```rust
-use spiris_bokforing::auth::{OAuth2Config, OAuth2Handler};
+use spiris::auth::{OAuth2Config, OAuth2Handler};
 
 // Check if token is expired
 if client.is_token_expired() {
@@ -434,7 +434,7 @@ if client.is_token_expired() {
 The client supports extensive configuration for production use:
 
 ```rust
-use spiris_bokforing::{Client, AccessToken, ClientConfig, RetryConfig};
+use spiris::{Client, AccessToken, ClientConfig, RetryConfig};
 use std::time::Duration;
 
 let token = AccessToken::new("token".to_string(), 3600, None);
@@ -738,7 +738,7 @@ A: Spiris Bokföring och Fakturering is the new name for Visma eAccounting. All 
 
 ## Migration Guide
 
-### From visma_eaccounting to spiris_bokforing
+### From visma_eaccounting to spiris
 
 If you were using an earlier version with the `visma_eaccounting` package name:
 
@@ -749,7 +749,7 @@ If you were using an earlier version with the `visma_eaccounting` package name:
 # visma_eaccounting = "0.1.0"
 
 # New
-spiris_bokforing = "0.1.0"
+spiris = "0.1.0"
 ```
 
 2. Update imports:
@@ -758,7 +758,7 @@ spiris_bokforing = "0.1.0"
 use visma_eaccounting::{Client, AccessToken};
 
 // New
-use spiris_bokforing::{Client, AccessToken};
+use spiris::{Client, AccessToken};
 ```
 
 3. Update environment variables:
@@ -783,12 +783,12 @@ cargo doc --open
 ```
 
 Browse available modules:
-- `spiris_bokforing::auth` - OAuth2 authentication
-- `spiris_bokforing::client` - HTTP client
-- `spiris_bokforing::endpoints` - API endpoints
-- `spiris_bokforing::error` - Error types
-- `spiris_bokforing::types` - Data models
-- `spiris_bokforing::retry` - Retry configuration
+- `spiris::auth` - OAuth2 authentication
+- `spiris::client` - HTTP client
+- `spiris::endpoints` - API endpoints
+- `spiris::error` - Error types
+- `spiris::types` - Data models
+- `spiris::retry` - Retry configuration
 
 ## Contributing
 
@@ -798,8 +798,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ```bash
 # Clone the repository
-git clone https://github.com/jimmystridh/spiris-bokforing-rs
-cd spiris-bokforing-rs
+git clone https://github.com/jimmystridh/spiris-rust
+cd spiris-rust
 
 # Run tests
 cargo test

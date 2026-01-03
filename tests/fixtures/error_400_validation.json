@@ -1,0 +1,14 @@
+{
+    "ErrorCode": "VALIDATION_ERROR",
+    "Message": "Validation failed",
+    "ValidationErrors": [
+        {
+            "Field": "Name",
+            "Message": "Name is required"
+        },
+        {
+            "Field": "Email",
+            "Message": "Invalid email format"
+        }
+    ]
+}

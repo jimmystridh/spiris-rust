@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Rebranded from Visma eAccounting to Spiris Bokföring och Fakturering
-- Package name: `visma_eaccounting` → `spiris_bokforing`
+- Package name: `visma_eaccounting` → `spiris`
 - Environment variables: `VISMA_*` → `SPIRIS_*`
 - User agent: `spiris-bokforing-rust/0.1.0`
 

@@ -3,7 +3,7 @@
 mod mock_server;
 
 use mock_server::MockApi;
-use spiris_bokforing::{Customer, PaginationParams, QueryParams};
+use spiris::{Customer, PaginationParams, QueryParams};
 
 #[tokio::test]
 async fn test_list_customers() {

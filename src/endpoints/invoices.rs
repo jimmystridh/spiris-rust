@@ -9,7 +9,7 @@ use crate::types::{Invoice, InvoicePayment, PaginatedResponse, PaginationParams,
 /// # Example
 ///
 /// ```no_run
-/// use spiris_bokforing::{Client, AccessToken};
+/// use spiris::{Client, AccessToken};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,7 +43,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, PaginationParams};
+    /// # use spiris::{Client, PaginationParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let params = PaginationParams::new().page(0).pagesize(50);
     /// let invoices = client.invoices().list(Some(params)).await?;
@@ -72,7 +72,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let invoice = client.invoices().get("invoice-id-123").await?;
     /// println!("Invoice #{:?}", invoice.invoice_number);
@@ -92,8 +92,8 @@ impl<'a> InvoicesEndpoint<'a> {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// # use spiris_bokforing::{Client, Invoice, InvoiceRow};
+    /// ```ignore
+    /// # use spiris::{Client, Invoice, InvoiceRow, money};
     /// # use chrono::Utc;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let new_invoice = Invoice {
@@ -102,8 +102,8 @@ impl<'a> InvoicesEndpoint<'a> {
     ///     rows: vec![
     ///         InvoiceRow {
     ///             text: Some("Consulting services".to_string()),
-    ///             unit_price: Some(1000.0),
-    ///             quantity: Some(10.0),
+    ///             unit_price: Some(money!(1000.0)),
+    ///             quantity: Some(money!(10.0)),
     ///             ..Default::default()
     ///         }
     ///     ],
@@ -127,7 +127,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let mut invoice = client.invoices().get("invoice-id-123").await?;
     /// invoice.remarks = Some("Updated remarks".to_string());
@@ -149,7 +149,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::Client;
+    /// # use spiris::Client;
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// client.invoices().delete("invoice-id-123").await?;
     /// # Ok(())
@@ -170,7 +170,7 @@ impl<'a> InvoicesEndpoint<'a> {
     /// # Example
     ///
     /// ```no_run
-    /// # use spiris_bokforing::{Client, QueryParams};
+    /// # use spiris::{Client, QueryParams};
     /// # async fn example(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
     /// let query = QueryParams::new()
     ///     .filter("IsSent eq true");
@@ -232,5 +232,24 @@ impl<'a> InvoicesEndpoint<'a> {
         let path = format!("/customerinvoices/{}/einvoice", invoice_id);
         self.client.post::<(), _>(&path, &()).await?;
         Ok(())
+    }
+
+    /// Stream all invoices, automatically paginating through results.
+    ///
+    /// Requires the `stream` feature.
+    #[cfg(feature = "stream")]
+    pub fn list_stream(&self) -> impl futures::Stream<Item = Result<Invoice>> + '_ {
+        self.list_stream_with_page_size(crate::pagination::DEFAULT_PAGE_SIZE)
+    }
+
+    /// Stream all invoices with a custom page size.
+    ///
+    /// Requires the `stream` feature.
+    #[cfg(feature = "stream")]
+    pub fn list_stream_with_page_size(
+        &self,
+        page_size: u32,
+    ) -> impl futures::Stream<Item = Result<Invoice>> + '_ {
+        crate::paginated_stream!(page_size, |params| self.list(Some(params)))
     }
 }

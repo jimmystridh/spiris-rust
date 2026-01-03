@@ -1,0 +1,7 @@
+{
+    "Id": "cust-001",
+    "CustomerNumber": "1001",
+    "Name": "Acme Corporation",
+    "Email": "contact@acme.com",
+    "IsActive": true
+}

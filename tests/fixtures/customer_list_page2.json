@@ -1,0 +1,26 @@
+{
+    "Data": [
+        {
+            "Id": "cust-004",
+            "CustomerNumber": "1004",
+            "Name": "Delta Consulting",
+            "Email": "hello@delta.com",
+            "IsActive": true
+        },
+        {
+            "Id": "cust-005",
+            "CustomerNumber": "1005",
+            "Name": "Epsilon Tech",
+            "Email": "info@epsilon.se",
+            "IsActive": false
+        }
+    ],
+    "Meta": {
+        "CurrentPage": 1,
+        "PageSize": 3,
+        "TotalPages": 2,
+        "TotalCount": 5,
+        "HasNextPage": false,
+        "HasPreviousPage": true
+    }
+}
