@@ -346,9 +346,10 @@ impl Client {
         }
 
         // Apply any headers added by middleware
-        let request = ctx.headers.iter().fold(request, |req, (k, v)| {
-            req.header(k.as_str(), v.as_str())
-        });
+        let request = ctx
+            .headers
+            .iter()
+            .fold(request, |req, (k, v)| req.header(k.as_str(), v.as_str()));
 
         // Apply rate limiting if configured
         #[cfg(feature = "rate-limit")]
@@ -415,9 +416,9 @@ impl Client {
 
         // Clone the request for potential retries
         // Note: try_clone() returns None if the body is a stream that can't be cloned
-        let request_clone = request
-            .try_clone()
-            .ok_or_else(|| Error::InvalidRequest("Request body cannot be cloned for retry".into()))?;
+        let request_clone = request.try_clone().ok_or_else(|| {
+            Error::InvalidRequest("Request body cannot be cloned for retry".into())
+        })?;
 
         // Try the first request
         let response = request.send().await?;
@@ -432,7 +433,8 @@ impl Client {
                 // Use retry logic for retryable errors
                 crate::retry::retry_request(&self.config.retry_config, || async {
                     // We need to rebuild the request each time
-                    let url = request_clone.try_clone()
+                    let url = request_clone
+                        .try_clone()
                         .ok_or_else(|| Error::InvalidRequest("Request cannot be cloned".into()))?;
                     let response = url.send().await?;
                     self.handle_response(response).await

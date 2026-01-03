@@ -7,7 +7,7 @@
 //! - HTTP request latency with mock server
 //! - Concurrent request handling
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use spiris::{
     money, AccessToken, Article, Client, ClientConfig, Customer, Invoice, InvoiceRow,
     PaginatedResponse, PaginationParams,
@@ -140,15 +140,9 @@ fn paginated_response_deserialization(c: &mut Criterion) {
             size
         );
 
-        group.bench_with_input(
-            BenchmarkId::from_parameter(size),
-            &json,
-            |b, json| {
-                b.iter(|| {
-                    serde_json::from_str::<PaginatedResponse<Customer>>(black_box(json)).unwrap()
-                })
-            },
-        );
+        group.bench_with_input(BenchmarkId::from_parameter(size), &json, |b, json| {
+            b.iter(|| serde_json::from_str::<PaginatedResponse<Customer>>(black_box(json)).unwrap())
+        });
     }
 
     group.finish();
@@ -287,10 +281,6 @@ criterion_group!(
     access_token_authorization_header,
 );
 
-criterion_group!(
-    client_benches,
-    client_creation,
-    client_with_config_creation,
-);
+criterion_group!(client_benches, client_creation, client_with_config_creation,);
 
 criterion_main!(serialization_benches, token_benches, client_benches);

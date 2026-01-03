@@ -36,9 +36,11 @@ fn test_pkce_verifier_generation() {
 
     // Verifier should only contain unreserved URI characters
     assert!(
-        pkce_verifier
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '.' || c == '_' || c == '~'),
+        pkce_verifier.chars().all(|c| c.is_ascii_alphanumeric()
+            || c == '-'
+            || c == '.'
+            || c == '_'
+            || c == '~'),
         "PKCE verifier contains invalid characters"
     );
 }
@@ -269,10 +271,7 @@ fn test_oauth2_handler_invalid_auth_url() {
     config.auth_url = "not a valid url".to_string();
 
     let result = OAuth2Handler::new(config);
-    assert!(
-        result.is_err(),
-        "Should fail with invalid auth URL"
-    );
+    assert!(result.is_err(), "Should fail with invalid auth URL");
 }
 
 #[test]
@@ -284,10 +283,7 @@ fn test_oauth2_handler_invalid_redirect_uri() {
     );
 
     let result = OAuth2Handler::new(config);
-    assert!(
-        result.is_err(),
-        "Should fail with invalid redirect URI"
-    );
+    assert!(result.is_err(), "Should fail with invalid redirect URI");
 }
 
 // =============================================================================

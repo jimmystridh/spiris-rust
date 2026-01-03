@@ -710,8 +710,7 @@ async fn test_concurrent_list_operations() {
     let customers_ep = api.client.customers();
     let articles_ep = api.client.articles();
 
-    let (cust_result, art_result) =
-        tokio::join!(customers_ep.list(None), articles_ep.list(None));
+    let (cust_result, art_result) = tokio::join!(customers_ep.list(None), articles_ep.list(None));
 
     assert!(cust_result.is_ok());
     assert!(art_result.is_ok());

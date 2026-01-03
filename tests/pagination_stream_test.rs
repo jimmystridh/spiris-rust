@@ -125,7 +125,11 @@ async fn test_list_invoices_pagination() {
 async fn test_list_articles_pagination() {
     let mut api = MockApi::new().await;
 
-    let articles = vec![fixtures::article(1), fixtures::article(2), fixtures::article(3)];
+    let articles = vec![
+        fixtures::article(1),
+        fixtures::article(2),
+        fixtures::article(3),
+    ];
 
     let data = serde_json::to_string(&articles).unwrap();
     let meta = meta_json(0, 50, 1, 3);
@@ -158,9 +162,21 @@ async fn test_manual_pagination_all_pages() {
     let data2 = serde_json::to_string(&vec![fixtures::customer(5)]).unwrap();
     let page2_response = format!(r#"{{"Data": {}, {}}}"#, data2, meta_json(2, 2, 3, 5));
 
-    let _mock0 = api.mock_get_with_query("/customers", vec![("page", "0"), ("pagesize", "2")], &page0_response);
-    let _mock1 = api.mock_get_with_query("/customers", vec![("page", "1"), ("pagesize", "2")], &page1_response);
-    let _mock2 = api.mock_get_with_query("/customers", vec![("page", "2"), ("pagesize", "2")], &page2_response);
+    let _mock0 = api.mock_get_with_query(
+        "/customers",
+        vec![("page", "0"), ("pagesize", "2")],
+        &page0_response,
+    );
+    let _mock1 = api.mock_get_with_query(
+        "/customers",
+        vec![("page", "1"), ("pagesize", "2")],
+        &page1_response,
+    );
+    let _mock2 = api.mock_get_with_query(
+        "/customers",
+        vec![("page", "2"), ("pagesize", "2")],
+        &page2_response,
+    );
 
     // Manually iterate through all pages
     let mut all_customers = Vec::new();
@@ -231,7 +247,11 @@ async fn test_pagination_large_page_size() {
     let meta = meta_json(0, 1000, 1, 10);
     let response = format!(r#"{{"Data": {}, {}}}"#, data, meta);
 
-    let _mock = api.mock_get_with_query("/customers", vec![("page", "0"), ("pagesize", "1000")], &response);
+    let _mock = api.mock_get_with_query(
+        "/customers",
+        vec![("page", "0"), ("pagesize", "1000")],
+        &response,
+    );
 
     let params = PaginationParams::new().page(0).pagesize(1000);
     let result = api.client.customers().list(Some(params)).await.unwrap();
@@ -252,10 +272,19 @@ async fn test_pagination_error_mid_iteration() {
     let data = serde_json::to_string(&fixtures::customers(2)).unwrap();
     let page0_response = format!(r#"{{"Data": {}, {}}}"#, data, meta_json(0, 2, 3, 5));
 
-    let _mock0 = api.mock_get_with_query("/customers", vec![("page", "0"), ("pagesize", "2")], &page0_response);
+    let _mock0 = api.mock_get_with_query(
+        "/customers",
+        vec![("page", "0"), ("pagesize", "2")],
+        &page0_response,
+    );
 
     // Page 1 fails with 500
-    let _mock1 = api.mock_error("GET", "/customers?page=1&pagesize=2", 500, r#"{"Message": "Server Error"}"#);
+    let _mock1 = api.mock_error(
+        "GET",
+        "/customers?page=1&pagesize=2",
+        500,
+        r#"{"Message": "Server Error"}"#,
+    );
 
     // First page works
     let params0 = PaginationParams::new().page(0).pagesize(2);
@@ -276,7 +305,11 @@ async fn test_pagination_invalid_page_number() {
     let meta = meta_json(999, 50, 1, 10);
     let response = format!(r#"{{"Data": [], {}}}"#, meta);
 
-    let _mock = api.mock_get_with_query("/customers", vec![("page", "999"), ("pagesize", "50")], &response);
+    let _mock = api.mock_get_with_query(
+        "/customers",
+        vec![("page", "999"), ("pagesize", "50")],
+        &response,
+    );
 
     let params = PaginationParams::new().page(999).pagesize(50);
     let result = api.client.customers().list(Some(params)).await.unwrap();
@@ -304,10 +337,7 @@ fn test_pagination_params_with_values() {
 
 #[test]
 fn test_pagination_params_chaining() {
-    let params = PaginationParams::new()
-        .page(0)
-        .pagesize(25)
-        .page(1); // Override previous page
+    let params = PaginationParams::new().page(0).pagesize(25).page(1); // Override previous page
 
     assert_eq!(params.page, Some(1));
     assert_eq!(params.pagesize, Some(25));

@@ -322,7 +322,12 @@ impl MockApi {
             .create()
     }
 
-    pub fn mock_get_with_auth(&mut self, path: &str, auth_header: &str, response_body: &str) -> Mock {
+    pub fn mock_get_with_auth(
+        &mut self,
+        path: &str,
+        auth_header: &str,
+        response_body: &str,
+    ) -> Mock {
         self.server
             .mock("GET", path)
             .match_header("Authorization", auth_header)
@@ -521,7 +526,12 @@ impl MockApi {
 
     /// Create a sequence of mocks that will be matched in order
     /// Each response in the sequence will be returned once
-    pub fn mock_sequence(&mut self, method: &str, path: &str, responses: Vec<MockResponse>) -> Vec<Mock> {
+    pub fn mock_sequence(
+        &mut self,
+        method: &str,
+        path: &str,
+        responses: Vec<MockResponse>,
+    ) -> Vec<Mock> {
         responses
             .into_iter()
             .map(|response| {
@@ -791,7 +801,10 @@ impl MockOAuthServer {
 
         self.server
             .mock("POST", "/connect/token")
-            .match_body(Matcher::Regex(format!("code_verifier={}", expected_verifier)))
+            .match_body(Matcher::Regex(format!(
+                "code_verifier={}",
+                expected_verifier
+            )))
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(&response)
@@ -866,7 +879,7 @@ impl MockOAuthServer {
 
 #[allow(dead_code)]
 pub mod fixtures {
-    use spiris::{Customer, Invoice, InvoiceRow, Article};
+    use spiris::{Article, Customer, Invoice, InvoiceRow};
 
     pub fn customer(id: u32) -> Customer {
         Customer {
@@ -963,7 +976,10 @@ mod tests {
 
         let rate_limit = MockResponse::rate_limit(60);
         assert_eq!(rate_limit.status, 429);
-        assert!(rate_limit.headers.iter().any(|(k, v)| k == "Retry-After" && v == "60"));
+        assert!(rate_limit
+            .headers
+            .iter()
+            .any(|(k, v)| k == "Retry-After" && v == "60"));
     }
 
     #[tokio::test]

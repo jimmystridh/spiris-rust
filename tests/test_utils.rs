@@ -2,9 +2,7 @@
 #![cfg(not(feature = "decimal"))]
 //! Test utility functions and helpers for integration tests.
 
-use spiris::{
-    AccessToken, Article, Customer, Error, Invoice, PaginatedResponse, ResponseMetadata,
-};
+use spiris::{AccessToken, Article, Customer, Error, Invoice, PaginatedResponse, ResponseMetadata};
 use std::fs;
 use std::path::Path;
 use std::time::Duration;
@@ -134,7 +132,10 @@ pub fn assert_result_error_status<T: std::fmt::Debug>(
     expected_status: u16,
 ) {
     match result {
-        Ok(v) => panic!("Expected error with status {}, got Ok({:?})", expected_status, v),
+        Ok(v) => panic!(
+            "Expected error with status {}, got Ok({:?})",
+            expected_status, v
+        ),
         Err(e) => assert_error_status(e, expected_status),
     }
 }
@@ -321,7 +322,11 @@ pub fn json_eq(a: &str, b: &str) -> bool {
 macro_rules! assert_error_matches {
     ($result:expr, $pattern:pat) => {
         match $result {
-            Ok(v) => panic!("Expected error matching {}, got Ok({:?})", stringify!($pattern), v),
+            Ok(v) => panic!(
+                "Expected error matching {}, got Ok({:?})",
+                stringify!($pattern),
+                v
+            ),
             Err(ref e) => {
                 assert!(
                     matches!(e, $pattern),

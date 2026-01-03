@@ -39,7 +39,10 @@ fn test_query_params_select() {
 #[test]
 fn test_query_params_custom_param() {
     let params = QueryParams::new().param("customKey", "customValue");
-    assert_eq!(params.extra.get("customKey"), Some(&"customValue".to_string()));
+    assert_eq!(
+        params.extra.get("customKey"),
+        Some(&"customValue".to_string())
+    );
 }
 
 #[test]
@@ -124,13 +127,11 @@ fn test_query_params_filter_by_numeric() {
 
 #[test]
 fn test_query_params_filter_by_complex() {
-    let filter = Filter::field("IsActive")
-        .eq(true)
-        .and(
-            Filter::field("Country")
-                .eq("SE")
-                .or(Filter::field("Country").eq("NO")),
-        );
+    let filter = Filter::field("IsActive").eq(true).and(
+        Filter::field("Country")
+            .eq("SE")
+            .or(Filter::field("Country").eq("NO")),
+    );
     let params = QueryParams::new().filter_by(filter).select("Id,Name");
     assert_eq!(
         params.filter,
@@ -171,10 +172,7 @@ fn test_pagination_params_both() {
 
 #[test]
 fn test_pagination_params_chaining_override() {
-    let params = PaginationParams::new()
-        .page(1)
-        .pagesize(50)
-        .page(3); // Override
+    let params = PaginationParams::new().page(1).pagesize(50).page(3); // Override
 
     assert_eq!(params.page, Some(3));
     assert_eq!(params.pagesize, Some(50));
@@ -513,9 +511,7 @@ fn test_param_from_strings() {
 
 #[test]
 fn test_query_params_clone() {
-    let params1 = QueryParams::new()
-        .filter("test filter")
-        .select("Id,Name");
+    let params1 = QueryParams::new().filter("test filter").select("Id,Name");
 
     let params2 = params1.clone();
 

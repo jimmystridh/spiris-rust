@@ -33,7 +33,11 @@ async fn test_real_api_list_customers() {
         Ok(response) => {
             println!("Successfully fetched {} customers", response.data.len());
             println!("Total count: {}", response.meta.total_count);
-            println!("Page: {} of {}", response.meta.current_page + 1, response.meta.total_pages);
+            println!(
+                "Page: {} of {}",
+                response.meta.current_page + 1,
+                response.meta.total_pages
+            );
 
             for customer in response.data.iter().take(5) {
                 println!(
@@ -59,10 +63,7 @@ async fn test_real_api_list_customers_with_pagination() {
 
     match result {
         Ok(response) => {
-            assert!(
-                response.data.len() <= 10,
-                "Page size should be respected"
-            );
+            assert!(response.data.len() <= 10, "Page size should be respected");
             println!("Fetched {} customers (page size 10)", response.data.len());
         }
         Err(e) => {
@@ -187,12 +188,21 @@ async fn test_real_api_get_company_settings() {
 
     match result {
         Ok(settings) => {
-            println!("Company: {}", settings.company_name.as_deref().unwrap_or("N/A"));
+            println!(
+                "Company: {}",
+                settings.company_name.as_deref().unwrap_or("N/A")
+            );
             println!(
                 "Org Number: {}",
-                settings.corporate_identity_number.as_deref().unwrap_or("N/A")
+                settings
+                    .corporate_identity_number
+                    .as_deref()
+                    .unwrap_or("N/A")
             );
-            println!("Currency: {}", settings.currency_code.as_deref().unwrap_or("N/A"));
+            println!(
+                "Currency: {}",
+                settings.currency_code.as_deref().unwrap_or("N/A")
+            );
         }
         Err(e) => {
             panic!("Failed to get company settings: {:?}", e);

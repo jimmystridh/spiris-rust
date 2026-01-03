@@ -519,7 +519,11 @@ async fn test_invoice_not_found() {
 
     assert!(matches!(
         result,
-        Err(Error::NotFound(_)) | Err(Error::ApiError { status_code: 404, .. })
+        Err(Error::NotFound(_))
+            | Err(Error::ApiError {
+                status_code: 404,
+                ..
+            })
     ));
 }
 
@@ -538,7 +542,11 @@ async fn test_article_not_found() {
 
     assert!(matches!(
         result,
-        Err(Error::NotFound(_)) | Err(Error::ApiError { status_code: 404, .. })
+        Err(Error::NotFound(_))
+            | Err(Error::ApiError {
+                status_code: 404,
+                ..
+            })
     ));
 }
 

@@ -40,7 +40,9 @@ async fn test_rate_limit_returns_429_error() {
         Err(Error::RateLimitExceeded(_)) => {
             // Expected - dedicated rate limit error
         }
-        Err(Error::ApiError { status_code: 429, .. }) => {
+        Err(Error::ApiError {
+            status_code: 429, ..
+        }) => {
             // Also acceptable - generic API error with 429 status
         }
         Err(e) => panic!("Expected rate limit error, got: {:?}", e),
@@ -68,7 +70,10 @@ async fn test_rate_limit_on_customer_create() {
 
     assert!(result.is_err(), "Should fail on rate limit");
     match result {
-        Err(Error::RateLimitExceeded(_)) | Err(Error::ApiError { status_code: 429, .. }) => {}
+        Err(Error::RateLimitExceeded(_))
+        | Err(Error::ApiError {
+            status_code: 429, ..
+        }) => {}
         other => panic!("Expected rate limit error, got {:?}", other),
     }
 }
@@ -162,7 +167,10 @@ async fn test_rate_limit_independent_per_endpoint() {
 
     // Customers should fail
     let customers_result = api.client.customers().list(None).await;
-    assert!(customers_result.is_err(), "Customers should be rate limited");
+    assert!(
+        customers_result.is_err(),
+        "Customers should be rate limited"
+    );
 
     // Articles should succeed
     let articles_result = api.client.articles().list(None).await;
@@ -178,7 +186,10 @@ async fn test_multiple_requests_during_rate_limit() {
     // Multiple requests should all fail during rate limiting
     for _ in 0..3 {
         let result = api.client.customers().list(None).await;
-        assert!(result.is_err(), "All requests should fail during rate limit");
+        assert!(
+            result.is_err(),
+            "All requests should fail during rate limit"
+        );
     }
 }
 

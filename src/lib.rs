@@ -166,12 +166,13 @@ pub use types::{
     Account, AccountBalance, AccountType, Address, AllocationPeriod, Article, ArticleAccountCoding,
     ArticleCreate, ArticleLabel, ArticleUpdate, Attachment, AttachmentLink, Bank, BankAccount,
     CompanySettings, ConvertDraftOptions, CostCenter, CostCenterItem, Country, Currency, Customer,
-    CustomerCreate, CustomerInvoiceDraft, CustomerInvoiceDraftRow, CustomerLabel, CustomerLedgerItem,
-    CustomerUpdate, DeliveryMethod, DeliveryTerm, Document, FiscalYear, ForeignPaymentCode, Invoice,
-    InvoiceCreate, InvoicePayment, InvoiceRow, InvoiceRowCreate, InvoiceUpdate, Message, MessageThread,
-    Money, Order, OrderRow, PaginatedResponse, PaginationParams, Project, QueryParams, Quotation,
-    QuotationRow, ResponseMetadata, Supplier, SupplierInvoice, SupplierInvoiceDraft, SupplierInvoiceRow,
-    SupplierLabel, SupplierLedgerItem, TermsOfPayment, Unit, User, VatCode, Voucher, VoucherRow,
+    CustomerCreate, CustomerInvoiceDraft, CustomerInvoiceDraftRow, CustomerLabel,
+    CustomerLedgerItem, CustomerUpdate, DeliveryMethod, DeliveryTerm, Document, FiscalYear,
+    ForeignPaymentCode, Invoice, InvoiceCreate, InvoicePayment, InvoiceRow, InvoiceRowCreate,
+    InvoiceUpdate, Message, MessageThread, Money, Order, OrderRow, PaginatedResponse,
+    PaginationParams, Project, QueryParams, Quotation, QuotationRow, ResponseMetadata, Supplier,
+    SupplierInvoice, SupplierInvoiceDraft, SupplierInvoiceRow, SupplierLabel, SupplierLedgerItem,
+    TermsOfPayment, Unit, User, VatCode, Voucher, VoucherRow,
 };
 
 // Add endpoint accessors to the Client

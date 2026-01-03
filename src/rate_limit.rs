@@ -80,9 +80,7 @@ impl ApiRateLimiter {
         let quota = Quota::per_minute(
             NonZeroU32::new(config.requests_per_minute).unwrap_or(NonZeroU32::new(600).unwrap()),
         )
-        .allow_burst(
-            NonZeroU32::new(config.burst_size).unwrap_or(NonZeroU32::new(1).unwrap()),
-        );
+        .allow_burst(NonZeroU32::new(config.burst_size).unwrap_or(NonZeroU32::new(1).unwrap()));
 
         Self {
             limiter: Arc::new(RateLimiter::direct(quota)),

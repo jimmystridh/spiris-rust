@@ -558,11 +558,7 @@ fn test_access_token_creation() {
 
 #[test]
 fn test_access_token_with_refresh() {
-    let token = AccessToken::new(
-        "access".to_string(),
-        3600,
-        Some("refresh".to_string()),
-    );
+    let token = AccessToken::new("access".to_string(), 3600, Some("refresh".to_string()));
 
     assert_eq!(token.token, "access");
     assert_eq!(token.refresh_token, Some("refresh".to_string()));
@@ -577,11 +573,7 @@ fn test_access_token_authorization_header() {
 
 #[test]
 fn test_access_token_serialization() {
-    let token = AccessToken::new(
-        "test".to_string(),
-        3600,
-        Some("refresh".to_string()),
-    );
+    let token = AccessToken::new("test".to_string(), 3600, Some("refresh".to_string()));
 
     let json = serde_json::to_string(&token).unwrap();
     let deserialized: AccessToken = serde_json::from_str(&json).unwrap();

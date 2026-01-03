@@ -310,7 +310,9 @@ async fn test_mock_server_rate_limit_response() {
     // Should get rate limit error
     match result {
         Err(Error::RateLimitExceeded(_)) => {}
-        Err(Error::ApiError { status_code: 429, .. }) => {}
+        Err(Error::ApiError {
+            status_code: 429, ..
+        }) => {}
         other => panic!("Expected rate limit error, got {:?}", other),
     }
 }

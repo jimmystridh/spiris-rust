@@ -52,7 +52,10 @@ fn test_access_token_authorization_header() {
 #[test]
 fn test_token_not_expired_with_long_expiry() {
     let token = AccessToken::new("test".to_string(), 3600, None); // 1 hour
-    assert!(!token.is_expired(), "Token with 1 hour remaining should not be expired");
+    assert!(
+        !token.is_expired(),
+        "Token with 1 hour remaining should not be expired"
+    );
 }
 
 #[test]
@@ -65,7 +68,10 @@ fn test_token_expired_with_zero_expiry() {
 #[test]
 fn test_token_expired_with_negative_expiry() {
     let token = AccessToken::new("test".to_string(), -100, None);
-    assert!(token.is_expired(), "Token with negative expiry should be expired");
+    assert!(
+        token.is_expired(),
+        "Token with negative expiry should be expired"
+    );
 }
 
 #[test]
@@ -105,11 +111,7 @@ fn test_token_exactly_at_buffer_boundary() {
 
 #[test]
 fn test_token_serialization() {
-    let token = AccessToken::new(
-        "test_token".to_string(),
-        3600,
-        Some("refresh".to_string()),
-    );
+    let token = AccessToken::new("test_token".to_string(), 3600, Some("refresh".to_string()));
 
     let json = serde_json::to_string(&token).unwrap();
     assert!(json.contains("test_token"));
@@ -222,7 +224,10 @@ async fn test_set_access_token_updates_client() {
 
     // Make second request with new token
     let result2 = api.client.customers().list(None).await;
-    assert!(result2.is_ok(), "Second request with new token should succeed");
+    assert!(
+        result2.is_ok(),
+        "Second request with new token should succeed"
+    );
 }
 
 // =============================================================================
@@ -284,7 +289,10 @@ fn test_oauth2_handler_authorize_url_generated() {
 
     assert!(!auth_url.is_empty(), "Auth URL should not be empty");
     assert!(!csrf_token.is_empty(), "CSRF token should not be empty");
-    assert!(!pkce_verifier.is_empty(), "PKCE verifier should not be empty");
+    assert!(
+        !pkce_verifier.is_empty(),
+        "PKCE verifier should not be empty"
+    );
 }
 
 // =============================================================================
@@ -305,11 +313,7 @@ async fn test_refresh_token_missing_error() {
 
 #[test]
 fn test_token_has_refresh_token() {
-    let token = AccessToken::new(
-        "access".to_string(),
-        3600,
-        Some("refresh".to_string()),
-    );
+    let token = AccessToken::new("access".to_string(), 3600, Some("refresh".to_string()));
 
     assert!(token.refresh_token.is_some());
     assert_eq!(token.refresh_token.unwrap(), "refresh");
@@ -403,7 +407,11 @@ async fn test_auto_refresh_on_expired_token() {
     // Make a request - should auto-refresh and succeed
     let result = client.customers().list(None).await;
 
-    assert!(result.is_ok(), "Should auto-refresh and succeed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Should auto-refresh and succeed: {:?}",
+        result.err()
+    );
 
     // Verify the token was updated
     let current_token = client.get_access_token();

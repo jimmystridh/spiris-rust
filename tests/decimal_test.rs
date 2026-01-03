@@ -28,7 +28,10 @@ fn test_money_precision() {
     let b: Money = money!(0.2);
     let sum = a + b;
     let expected: Money = money!(0.3);
-    assert_eq!(sum, expected, "Decimal should handle 0.1 + 0.2 = 0.3 correctly");
+    assert_eq!(
+        sum, expected,
+        "Decimal should handle 0.1 + 0.2 = 0.3 correctly"
+    );
 }
 
 #[test]

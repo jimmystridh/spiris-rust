@@ -500,7 +500,9 @@ mod tests {
 
     #[test]
     fn test_and() {
-        let filter = Filter::field("IsActive").eq(true).and(Filter::field("Country").eq("SE"));
+        let filter = Filter::field("IsActive")
+            .eq(true)
+            .and(Filter::field("Country").eq("SE"));
         assert_eq!(
             filter.to_string(),
             "(IsActive eq true) and (Country eq 'SE')"
@@ -526,13 +528,11 @@ mod tests {
 
     #[test]
     fn test_complex_expression() {
-        let filter = Filter::field("IsActive")
-            .eq(true)
-            .and(
-                Filter::field("Country")
-                    .eq("SE")
-                    .or(Filter::field("Country").eq("NO")),
-            );
+        let filter = Filter::field("IsActive").eq(true).and(
+            Filter::field("Country")
+                .eq("SE")
+                .or(Filter::field("Country").eq("NO")),
+        );
         assert_eq!(
             filter.to_string(),
             "(IsActive eq true) and ((Country eq 'SE') or (Country eq 'NO'))"

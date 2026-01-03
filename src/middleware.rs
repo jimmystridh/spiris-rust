@@ -502,10 +502,7 @@ mod tests {
     fn test_request_context_extensions() {
         let mut ctx = RequestContext::new("GET", "https://api.example.com/test");
         ctx.set_extension("request_id", "12345");
-        assert_eq!(
-            ctx.extensions.get("request_id"),
-            Some(&"12345".to_string())
-        );
+        assert_eq!(ctx.extensions.get("request_id"), Some(&"12345".to_string()));
     }
 
     #[test]

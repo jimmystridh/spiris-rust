@@ -320,10 +320,7 @@ fn test_sum_invoice_rows() {
         },
     ];
 
-    let total: f64 = rows
-        .iter()
-        .filter_map(|r| r.total_amount)
-        .sum();
+    let total: f64 = rows.iter().filter_map(|r| r.total_amount).sum();
 
     assert!((total - 350.50).abs() < 0.0001);
 }

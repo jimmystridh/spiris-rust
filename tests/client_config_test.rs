@@ -188,7 +188,10 @@ fn test_client_clone() {
     let cloned = client.clone();
 
     // Both clients should share the same token
-    assert_eq!(client.get_access_token().token, cloned.get_access_token().token);
+    assert_eq!(
+        client.get_access_token().token,
+        cloned.get_access_token().token
+    );
 }
 
 #[test]
@@ -224,7 +227,11 @@ fn test_set_access_token() {
     let original = AccessToken::new("original".to_string(), 3600, None);
     let client = Client::new(original);
 
-    let new_token = AccessToken::new("new_token".to_string(), 7200, Some("new_refresh".to_string()));
+    let new_token = AccessToken::new(
+        "new_token".to_string(),
+        7200,
+        Some("new_refresh".to_string()),
+    );
     client.set_access_token(new_token);
 
     let retrieved = client.get_access_token();
@@ -300,13 +307,9 @@ fn test_client_shared_across_threads() {
     let client1 = Arc::clone(&client);
     let client2 = Arc::clone(&client);
 
-    let handle1 = thread::spawn(move || {
-        client1.get_access_token().token
-    });
+    let handle1 = thread::spawn(move || client1.get_access_token().token);
 
-    let handle2 = thread::spawn(move || {
-        client2.get_access_token().token
-    });
+    let handle2 = thread::spawn(move || client2.get_access_token().token);
 
     let result1 = handle1.join().unwrap();
     let result2 = handle2.join().unwrap();
@@ -356,7 +359,10 @@ async fn test_client_makes_request_with_auth_header() {
     let mock = api
         .server
         .mock("GET", "/customers")
-        .match_header("authorization", mockito::Matcher::Regex("Bearer .+".to_string()))
+        .match_header(
+            "authorization",
+            mockito::Matcher::Regex("Bearer .+".to_string()),
+        )
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(&response)
@@ -380,9 +386,10 @@ async fn test_client_makes_request_with_user_agent() {
     let mock = api
         .server
         .mock("GET", "/customers")
-        .match_header("user-agent", mockito::Matcher::Regex(
-            "spiris-bokforing-rust/.*".to_string()
-        ))
+        .match_header(
+            "user-agent",
+            mockito::Matcher::Regex("spiris-bokforing-rust/.*".to_string()),
+        )
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(&response)
@@ -580,7 +587,12 @@ async fn test_client_handles_403_forbidden() {
 async fn test_client_handles_404_not_found() {
     let mut api = MockApi::new().await;
 
-    let _mock = api.mock_error("GET", "/customers/nonexistent", 404, r#"{"Message": "Not found"}"#);
+    let _mock = api.mock_error(
+        "GET",
+        "/customers/nonexistent",
+        404,
+        r#"{"Message": "Not found"}"#,
+    );
 
     let result = api.client.customers().get("nonexistent").await;
 
@@ -591,7 +603,12 @@ async fn test_client_handles_404_not_found() {
 async fn test_client_handles_429_rate_limit() {
     let mut api = MockApi::new().await;
 
-    let _mock = api.mock_error("GET", "/customers", 429, r#"{"Message": "Too many requests"}"#);
+    let _mock = api.mock_error(
+        "GET",
+        "/customers",
+        429,
+        r#"{"Message": "Too many requests"}"#,
+    );
 
     let result = api.client.customers().list(None).await;
 
@@ -614,11 +631,22 @@ async fn test_client_handles_400_bad_request() {
 async fn test_client_handles_500_server_error() {
     let mut api = MockApi::new().await;
 
-    let _mock = api.mock_error("GET", "/customers", 500, r#"{"Message": "Internal server error"}"#);
+    let _mock = api.mock_error(
+        "GET",
+        "/customers",
+        500,
+        r#"{"Message": "Internal server error"}"#,
+    );
 
     let result = api.client.customers().list(None).await;
 
-    assert!(matches!(result, Err(Error::ApiError { status_code: 500, .. })));
+    assert!(matches!(
+        result,
+        Err(Error::ApiError {
+            status_code: 500,
+            ..
+        })
+    ));
 }
 
 // =============================================================================
