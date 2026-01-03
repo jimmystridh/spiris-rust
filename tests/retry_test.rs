@@ -338,7 +338,7 @@ fn test_backoff_calculation() {
     let max = Duration::from_secs(30);
 
     let mut interval = initial;
-    let expected_intervals = vec![
+    let expected_intervals = [
         Duration::from_millis(500),  // Initial
         Duration::from_millis(1000), // 500 * 2
         Duration::from_millis(2000), // 1000 * 2

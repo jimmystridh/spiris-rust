@@ -648,33 +648,6 @@ mod tests {
         assert!(elapsed >= Duration::from_millis(10));
     }
 
-    struct CountingMiddleware {
-        request_count: std::sync::atomic::AtomicU32,
-        response_count: std::sync::atomic::AtomicU32,
-    }
-
-    impl CountingMiddleware {
-        fn new() -> Self {
-            Self {
-                request_count: std::sync::atomic::AtomicU32::new(0),
-                response_count: std::sync::atomic::AtomicU32::new(0),
-            }
-        }
-    }
-
-    impl Middleware for CountingMiddleware {
-        fn on_request(&self, _ctx: &mut RequestContext) -> Result<()> {
-            self.request_count
-                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-            Ok(())
-        }
-
-        fn on_response(&self, _ctx: &ResponseContext) {
-            self.response_count
-                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        }
-    }
-
     #[test]
     fn test_middleware_stack_execution_order() {
         let stack = MiddlewareStack::new()

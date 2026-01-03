@@ -50,7 +50,7 @@ pub fn meta_json(current_page: u32, page_size: u32, total_pages: u32, total_coun
 #[allow(dead_code)]
 pub fn paginated_response(data_json: &str, current_page: u32, total_count: u32) -> String {
     let page_size = 50;
-    let total_pages = (total_count + page_size - 1) / page_size;
+    let total_pages = total_count.div_ceil(page_size);
     format!(
         r#"{{"Data": {}, {}}}"#,
         data_json,
@@ -817,7 +817,7 @@ impl MockOAuthServer {
         if let Some(refresh) = new_refresh_token {
             response.push_str(&format!(r#", "refresh_token": "{}""#, refresh));
         }
-        response.push_str("}");
+        response.push('}');
 
         self.server
             .mock("POST", "/connect/token")

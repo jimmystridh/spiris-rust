@@ -9,7 +9,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use spiris::{
-    AccessToken, Article, Client, ClientConfig, Customer, Invoice, InvoiceRow,
+    money, AccessToken, Article, Client, ClientConfig, Customer, Invoice, InvoiceRow,
     PaginatedResponse, PaginationParams,
 };
 
@@ -59,21 +59,19 @@ fn invoice_with_rows_serialization(c: &mut Criterion) {
         id: Some("inv-12345".to_string()),
         invoice_number: Some("1001".to_string()),
         customer_id: Some("cust-12345".to_string()),
-        total_amount: Some(10000.00),
-        total_vat_amount: Some(2500.00),
-        total_amount_including_vat: Some(12500.00),
-        rows: (0..10)
-            .map(|i| InvoiceRow {
-                id: Some(format!("row-{}", i)),
-                article_id: Some(format!("art-{}", i)),
-                text: Some(format!("Product {} description", i)),
-                unit_price: Some(100.0 * (i + 1) as f64),
-                quantity: Some(2.0),
-                discount_percentage: Some(0.0),
-                total_amount: Some(200.0 * (i + 1) as f64),
-                ..Default::default()
-            })
-            .collect(),
+        total_amount: Some(money!(10000.00)),
+        total_vat_amount: Some(money!(2500.00)),
+        total_amount_including_vat: Some(money!(12500.00)),
+        rows: vec![InvoiceRow {
+            id: Some("row-0".to_string()),
+            article_id: Some("art-0".to_string()),
+            text: Some("Product description".to_string()),
+            unit_price: Some(money!(100.0)),
+            quantity: Some(money!(2.0)),
+            discount_percentage: Some(money!(0.0)),
+            total_amount: Some(money!(200.0)),
+            ..Default::default()
+        }],
         ..Default::default()
     };
 
@@ -166,8 +164,8 @@ fn article_serialization(c: &mut Criterion) {
         article_number: Some("ART001".to_string()),
         name: Some("Premium Widget".to_string()),
         unit: Some("pcs".to_string()),
-        sales_price: Some(299.99),
-        purchase_price: Some(149.99),
+        sales_price: Some(money!(299.99)),
+        purchase_price: Some(money!(149.99)),
         is_active: Some(true),
         vat_rate_id: Some("vat-25".to_string()),
         ..Default::default()

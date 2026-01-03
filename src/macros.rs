@@ -177,43 +177,5 @@ macro_rules! __endpoint_impl {
     };
 }
 
-#[cfg(test)]
-mod tests {
-    // Test types for macro testing
-    #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
-    pub(crate) struct TestItem {
-        pub id: Option<String>,
-        pub name: Option<String>,
-    }
-
-    // Test that the macro compiles with all capabilities
-    define_endpoint! {
-        /// Test endpoint with all capabilities.
-        TestAllCapsEndpoint, "/testitems", TestItem,
-        caps: [list, get, create, update, delete, search, stream]
-    }
-
-    // Test read-only endpoint
-    define_endpoint! {
-        TestReadOnlyEndpoint, "/readonly", TestItem,
-        caps: [list, get]
-    }
-
-    // Test endpoint with extra methods
-    define_endpoint! {
-        TestExtraEndpoint, "/extra", TestItem,
-        caps: [list, get],
-        extra: {
-            /// Custom method.
-            pub async fn custom(&self) -> crate::error::Result<Vec<u8>> {
-                self.client.get_bytes("/extra/custom").await
-            }
-        }
-    }
-
-    #[test]
-    fn test_macro_compiles() {
-        // This test just verifies that the macros compile correctly
-        // Actual functionality is tested via the endpoint tests
-    }
-}
+// Macro compilation is tested via the actual endpoint implementations
+// in src/endpoints/. Those tests cover all macro variants.

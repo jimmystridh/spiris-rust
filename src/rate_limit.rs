@@ -156,7 +156,7 @@ mod tests {
     fn test_rate_limiter_clone() {
         let config = RateLimitConfig::new(600);
         let limiter1 = ApiRateLimiter::new(&config);
-        let limiter2 = limiter1.clone();
+        let _limiter2 = limiter1.clone();
 
         // Both limiters should share the same internal state
         assert!(limiter1.try_acquire());

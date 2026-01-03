@@ -8,7 +8,7 @@
 //! - All expected fields are present
 
 use spiris::{
-    money, AccessToken, Address, Article, Customer, Invoice, InvoiceRow, Money, PaginatedResponse,
+    AccessToken, Address, Article, Customer, Invoice, InvoiceRow, Money, PaginatedResponse,
     PaginationParams, QueryParams, ResponseMetadata,
 };
 
