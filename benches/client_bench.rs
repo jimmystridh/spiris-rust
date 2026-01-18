@@ -8,11 +8,11 @@
 //! - Concurrent request handling
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::hint::black_box;
 use spiris::{
     money, AccessToken, Article, Client, ClientConfig, Customer, Invoice, InvoiceRow,
     PaginatedResponse, PaginationParams,
 };
+use std::hint::black_box;
 
 // =============================================================================
 // Serialization Benchmarks
