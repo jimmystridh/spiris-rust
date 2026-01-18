@@ -4,7 +4,7 @@ use crate::error::{Error, Result};
 use chrono::{DateTime, Duration, Utc};
 use oauth2::{
     basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
-    PkceCodeChallenge, RedirectUrl, Scope, TokenResponse, TokenUrl,
+    EndpointNotSet, EndpointSet, PkceCodeChallenge, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use serde::{Deserialize, Serialize};
 
@@ -154,30 +154,47 @@ impl AccessToken {
     }
 }
 
+/// Type alias for the configured OAuth2 client.
+type ConfiguredClient = oauth2::Client<
+    oauth2::StandardErrorResponse<oauth2::basic::BasicErrorResponseType>,
+    oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>,
+    oauth2::StandardTokenIntrospectionResponse<
+        oauth2::EmptyExtraTokenFields,
+        oauth2::basic::BasicTokenType,
+    >,
+    oauth2::StandardRevocableToken,
+    oauth2::StandardErrorResponse<oauth2::RevocationErrorResponseType>,
+    EndpointSet,
+    EndpointNotSet,
+    EndpointNotSet,
+    EndpointNotSet,
+    EndpointSet,
+>;
+
 /// OAuth2 authentication handler.
 pub struct OAuth2Handler {
     #[allow(dead_code)]
     config: OAuth2Config,
-    client: BasicClient,
+    client: ConfiguredClient,
 }
 
 impl OAuth2Handler {
     /// Create a new OAuth2 handler.
     pub fn new(config: OAuth2Config) -> Result<Self> {
-        let client = BasicClient::new(
-            ClientId::new(config.client_id.clone()),
-            Some(ClientSecret::new(config.client_secret.clone())),
-            AuthUrl::new(config.auth_url.clone())
-                .map_err(|e| Error::InvalidConfig(format!("Invalid auth URL: {}", e)))?,
-            Some(
+        let client = BasicClient::new(ClientId::new(config.client_id.clone()))
+            .set_client_secret(ClientSecret::new(config.client_secret.clone()))
+            .set_auth_uri(
+                AuthUrl::new(config.auth_url.clone())
+                    .map_err(|e| Error::InvalidConfig(format!("Invalid auth URL: {}", e)))?,
+            )
+            .set_token_uri(
                 TokenUrl::new(config.token_url.clone())
                     .map_err(|e| Error::InvalidConfig(format!("Invalid token URL: {}", e)))?,
-            ),
-        )
-        .set_redirect_uri(
-            RedirectUrl::new(config.redirect_uri.clone())
-                .map_err(|e| Error::InvalidConfig(format!("Invalid redirect URI: {}", e)))?,
-        );
+            )
+            .set_redirect_uri(
+                RedirectUrl::new(config.redirect_uri.clone())
+                    .map_err(|e| Error::InvalidConfig(format!("Invalid redirect URI: {}", e)))?,
+            );
 
         Ok(Self { config, client })
     }
@@ -231,11 +248,12 @@ impl OAuth2Handler {
         #[cfg(feature = "tracing")]
         info!("Exchanging authorization code for access token");
 
+        let http_client = reqwest::Client::new();
         let token_result = self
             .client
             .exchange_code(AuthorizationCode::new(code))
             .set_pkce_verifier(PkceCodeVerifier::new(pkce_verifier))
-            .request_async(oauth2::reqwest::async_http_client)
+            .request_async(&http_client)
             .await
             .map_err(|e| {
                 #[cfg(feature = "tracing")]
@@ -282,10 +300,11 @@ impl OAuth2Handler {
         #[cfg(feature = "tracing")]
         debug!("Refreshing access token using refresh token");
 
+        let http_client = reqwest::Client::new();
         let token_result = self
             .client
             .exchange_refresh_token(&RefreshToken::new(refresh_token))
-            .request_async(oauth2::reqwest::async_http_client)
+            .request_async(&http_client)
             .await
             .map_err(|e| {
                 #[cfg(feature = "tracing")]
